@@ -13,6 +13,8 @@ from pdf2image import convert_from_path
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
 
+sys.setrecursionlimit(10000)  # higher recursion limit means compatibility with larger PDF files
+
 
 def merge_pdfs(path):
     """Merges all the PDF files into a single resulting PDF"""

@@ -1,12 +1,10 @@
 import os
-import random
 import sys
 
 import numpy
 from PIL import Image
-from PyPDF2 import PdfFileMerger
-from PyPDF3 import PdfFileWriter, PdfFileReader
-from PyPDF3.pdf import PageObject
+from PyPDF3.merger import PdfFileMerger
+from PyPDF3.pdf import PageObject, PdfFileWriter, PdfFileReader
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
 from pdf2image import convert_from_path
 
@@ -76,20 +74,11 @@ def resave_pdfs(path):
     file_paths = index_directory(path, "pdf")
     for file_path in file_paths:
         saver = PdfFileMerger(strict = False)
-        saver.append(file_path)
-        while True:  # save to a temporary random-numbered file to delete old file
-            temp_pdf_name = "\\\\".join(file_path.split("\\")[:-1])
-            temp_pdf_name = f"{temp_pdf_name}{random.randint(0, 10 ** 50)}"
-            if temp_pdf_name not in file_paths:
-                break
-        saver.write(temp_pdf_name)
-        saver.close()
+        with open(file_path, "rb") as f:
+            saver.append(f)
         os.remove(file_path)
-        saver = PdfFileMerger()
-        saver.append(temp_pdf_name)
         saver.write(file_path)
         saver.close()
-        os.remove(temp_pdf_name)
 
 
 def pdf_to_image(path):
@@ -211,12 +200,15 @@ def index_directory(path, file_types):
     return file_paths
 
 
-def calculate_button_position_size(row, col, btn):
-    """Size, show and move a button to it's predetermined values"""
+def program_button(name, row, col, function):
+    """Show and program a button's Text, Position, Size, and Function"""
+    btn = QPushButton(widget)
+    btn.setText(name)
     x = (col - 1) * colSpacing
     y = (row - 1) * rowSpacing
     btn.setFixedSize(buttonWidth, buttonHeight)
     btn.move(x, y)
+    btn.clicked.connect(function)
     btn.show()
 
 
@@ -249,59 +241,23 @@ if __name__ == "__main__":
                   4 * rowSpacing - rowSpacingActual)  # ints define how many rows/col to scale window to
     widget.setWindowTitle("PDF and Image Tools")
 
-    # Merge PDFs
-    btn = QPushButton(widget)
-    btn.setText("Merge PDFs")
-    calculate_button_position_size(1, 1, btn)
-    btn.clicked.connect(lambda: merge_pdfs(PATH_TO_FOLDER))
-    # Stitch PDF pages
-    btn = QPushButton(widget)
-    btn.setText("Stitch PDFs")
-    calculate_button_position_size(1, 2, btn)
-    btn.clicked.connect(lambda: stitch_pdfs(PATH_TO_FOLDER))
-    # Resave PDF pages
-    btn = QPushButton(widget)
-    btn.setText("Resave PDFs")
-    calculate_button_position_size(1, 3, btn)
-    btn.clicked.connect(lambda: resave_pdfs(PATH_TO_FOLDER))
+    # row 1
+    program_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER))
+    program_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER))
+    program_button("Resave PDFs", 1, 3, lambda: resave_pdfs(PATH_TO_FOLDER))
 
-    # PDF to Image
-    btn = QPushButton(widget)
-    btn.setText("PDF to Image")
-    calculate_button_position_size(2, 1, btn)
-    btn.clicked.connect(lambda: pdf_to_image(PATH_TO_FOLDER))
-    # Image to PDF
-    btn = QPushButton(widget)
-    btn.setText("Image to PDF")
-    calculate_button_position_size(2, 2, btn)
-    btn.clicked.connect(lambda: image_to_pdf(PATH_TO_FOLDER))
+    # row 2
+    program_button("PDF to Image", 2, 1, lambda: pdf_to_image(PATH_TO_FOLDER))
+    program_button("Image to PDF", 2, 2, lambda: image_to_pdf(PATH_TO_FOLDER))
 
-    # Crop Image
-    btn = QPushButton(widget)
-    btn.setText("Crop Images")
-    calculate_button_position_size(3, 1, btn)
-    btn.clicked.connect(lambda: crop_images(PATH_TO_FOLDER))
-    # Merge Images
-    btn = QPushButton(widget)
-    btn.setText("Merge Images")
-    calculate_button_position_size(3, 2, btn)
-    btn.clicked.connect(lambda: merge_images(PATH_TO_FOLDER))
-    # Convert Images
-    btn = QPushButton(widget)
-    btn.setText("Convert Images")
-    calculate_button_position_size(3, 3, btn)
-    btn.clicked.connect(lambda: convert_images(PATH_TO_FOLDER))
+    # row 3
+    program_button("Crop Images", 3, 1, lambda: crop_images(PATH_TO_FOLDER))
+    program_button("Merge Images", 3, 2, lambda: merge_images(PATH_TO_FOLDER))
+    program_button("Convert Images", 3, 3, lambda: convert_images(PATH_TO_FOLDER))
 
-    # Restart
-    btn_res = QPushButton(widget)
-    btn_res.setText("Restart")
-    calculate_button_position_size(4, 1, btn_res)
-    btn_res.clicked.connect(restart)
-    # Quit
-    btn_quit = QPushButton(widget)
-    btn_quit.setText("Quit")
-    calculate_button_position_size(4, 2, btn_quit)
-    btn_quit.clicked.connect(quit_clicked)
+    # row 4
+    program_button("Restart", 4, 1, restart)
+    program_button("Quit", 4, 2, quit_clicked)
 
     widget.show()
     sys.exit(app.exec_())

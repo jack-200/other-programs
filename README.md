@@ -4,7 +4,7 @@ This is a collection of standalone programs that offer tools for file management
 
 # pdf_and_image_tools.pyw
 
-![image](https://user-images.githubusercontent.com/86848773/208513617-40b3e4df-9212-4ab5-be8a-a4891a100c11.png)
+![image](https://user-images.githubusercontent.com/86848773/222896366-230e914b-e057-4059-b1b6-56ecf0acb445.png)
 
 This program comes with a GUI and buttons connecting to various PDF and image functions. The constant variable
 PATH_TO_FOLDER must be changed to the desired directory. The constant variable POPPLER_PATH must be changed to

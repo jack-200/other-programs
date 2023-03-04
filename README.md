@@ -12,14 +12,16 @@ the ```bin``` folder of poppler. Instructions to install poppler can be found in
 here: https://github.com/Belval/pdf2image
 
 * **Merge PDFs**: Merges all the PDF files into a single resulting PDF
-* **Stitch PDFs**: Stitches all the PDF pages into a single page. Each PDF file will result in one version with the
-  pages stitched vertically and the other horizontally.
-* **Resave PDFs**: Loads and resaves all the PDF files to reduce file size and prevent PDF mapping errors
+* **Stitch PDFs**: Stitches all the PDF pages of a single PDF file into a single page. For each PDF file, there will be two resulting versions - one with the pages stitched vertically and another with the pages stitched horizontally.
+* **Resave PDFs**: Load and resave all the PDF files to reduce file size
+* **Encrypt PDF**: Encrypts all PDF files using user-inputted key
+* **Save Page Range**: Saves the user-specified page range from each PDF file. 9-99 saves pages 9 to 99. -99 saves pages 1 to 99. 99- saves pages 99 and those succeeding. 99 saves page 99.
 * **PDF To Image**: Converts each PDF page to a separate PNG file
 * **Image To PDF**: Converts all PNG and JPG files to separate PDF files
 * **Crop Images**: Crops images based on user-defined dimensions
-* **Merge Images**: Merges all the PNG and JPG files in the directory and saves them as a combination of horizontally
-  and vertically merged PNG and JPG formats.
+* **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and vertically merged PNG and JPG formats.
+* **Img To Ico**: Converts image files to ICO format
+* **Img Metadata**: Prints out image metadata
 * **Convert Images**: Converts existing image files to a duplicate PNG or JPG format
 * **Restart**: Restarts the program as a quick way to apply any code changes and detach from using files
 * Files are processed in alphabetical order

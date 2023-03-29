@@ -28,9 +28,7 @@ here: https://github.com/Belval/pdf2image
 
 # Optimizations.bat
 
-Windows Batch File with commands to clean up the system, apply Windows updates, terminate user-defined programs, and
-other performance-improving actions. By default, the script will restart after all the actions. Anytime during the
-process, the user has the option to close the window and cancel.
+Windows Batch File to update important Python packages, run disk cleanup, defrag C drive, repair windows image, run full Microsoft Defender Antivirus scan, and other performance-improving actions.
 
 # directory_indexer.py
 

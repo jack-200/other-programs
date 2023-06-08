@@ -26,6 +26,10 @@ here: https://github.com/Belval/pdf2image
 * **Restart**: Restarts the program as a quick way to apply any code changes and detach from using files
 * Files are processed in alphabetical order
 
+# web_content_downloader.py
+
+Simple tool to download YouTube videos as MP4 and webpages as PDF. wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/. Files are saved in same location as script. 
+
 # Optimizations.bat
 
 Windows Batch File to update important Python packages, run disk cleanup, defrag C drive, repair windows image, run full Microsoft Defender Antivirus scan, and other performance-improving actions.

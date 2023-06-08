@@ -28,7 +28,7 @@ def _get_video_info(link):
     ytc = pytube.YouTube(url=link)
     ytc_info = ytc.vid_info
     print(f"\"{ytc_info['videoDetails']['title']}\" by {ytc_info['videoDetails']['author']}", end=", ")
-    print(f"{ytc_info['videoDetails']['viewCount']} views, ", end="")
+    print(f"{format(int(ytc_info['videoDetails']['viewCount']), ',d')} views, ", end="")
     print(f"{ytc_info['videoDetails']['lengthSeconds']}s, {ytc.publish_date}")
     return ytc
 

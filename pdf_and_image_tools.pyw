@@ -3,13 +3,13 @@ import os
 import sys
 
 import numpy
-from PIL import Image, ExifTags
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QLineEdit, QFormLayout
 from pdf2image import convert_from_path
+from PIL import ExifTags, Image
 from pypdf._merger import PdfMerger
 from pypdf._page import PageObject
 from pypdf._reader import PdfReader
 from pypdf._writer import PdfWriter
+from PyQt5.QtWidgets import QApplication, QFormLayout, QLineEdit, QMessageBox, QPushButton, QWidget
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
@@ -31,7 +31,7 @@ def stitch_pdfs(path):
     """Stitches all the PDF pages of a single PDF file into a single page. For each PDF file, there will be two
     resulting versions - one with the pages stitched vertically and another with the pages stitched horizontally."""
     for file_name in index_directory(path, "pdf"):
-        pdf_file = PdfReader(open(file_name, "rb"), strict = False)
+        pdf_file = PdfReader(open(file_name, "rb"), strict=False)
         if pdf_file.getNumPages() < 2:
             print(f"Skipped {file_name}: Too little pages")
             continue
@@ -72,7 +72,7 @@ def resave_pdfs(path):
     for file_path in index_directory(path, "pdf"):
         with open(file_path, "rb") as pdf:
             old = io.BytesIO(pdf.read())
-        reader = PdfReader(old, strict = False)
+        reader = PdfReader(old, strict=False)
         writer = PdfWriter()
         for page in reader.pages:
             writer.add_page(page)
@@ -91,7 +91,7 @@ def encrypt_pdf(path):
             pdf_reader = PdfReader(f)
             pdf = PdfWriter()
             pdf.append_pages_from_reader(pdf_reader)
-            pdf.encrypt(user_password = input_text)
+            pdf.encrypt(user_password=input_text)
         with open(f"{path}\\!encrypted {_break_path(file_path)[2]}", "wb") as f2:
             pdf.write(f2)
 
@@ -122,7 +122,7 @@ def save_page_range(path, first_page, last_page):
         first_page = int(first_page)
         last_page = int(last_page)
         merger = PdfMerger()
-        merger.append(file_path, pages = (first_page - 1, last_page))
+        merger.append(file_path, pages=(first_page - 1, last_page))
         merger.write(f"{path}\\{first_page}-{last_page} {_break_path(file_path)[2]}")
         merger.close()
 
@@ -131,14 +131,14 @@ def pdf_to_image(path):
     """Converts each PDF page to a separate PNG file"""
     file_paths = index_directory(path, "pdf")
     for file in file_paths:
-        pdf_pages = convert_from_path(file, dpi = 300, poppler_path = POPPLER_PATH)
+        pdf_pages = convert_from_path(file, dpi=300, poppler_path=POPPLER_PATH)
         for page_num, pdf_page in enumerate(pdf_pages):
             pdf_page.save(f"{'.'.join(file.split('.')[:-1])} {page_num}.png")  # append " {page_num}" to file name
 
 
 def image_to_pdf(path):
     """Converts all PNG and JPG files to separate PDF files"""
-    for file_path in index_directory(path, file_types = ["png", "jpg"]):
+    for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = Image.open(file_path)
         img.save(f"{_break_path(file_path)[1]}.pdf")
 
@@ -163,18 +163,18 @@ def input_box(row_spacing, col_spacing, button_width, button_height, col_spacing
 
 def crop_images(path):
     """Crops images based on user-defined dimensions"""
-    file_paths = index_directory(path, file_types = ["png", "jpg"])
+    file_paths = index_directory(path, file_types=["png", "jpg"])
     i_right = None
     for file_path in file_paths:  # image cropping is handled on a case-by-case basis
         img_orig = Image.open(file_path)
         if img_orig.size == (1280, 1080):
-            i_left = img_orig.crop(box = (0, 0, 1280, 720))  # left, upper, right, and lower coord
+            i_left = img_orig.crop(box=(0, 0, 1280, 720))  # left, upper, right, and lower coord
         elif img_orig.size == (2560, 720):
-            i_left = img_orig.crop(box = (0, 0, 1280, 720))
-            i_right = img_orig.crop(box = (1280, 0, 2560, 720))
+            i_left = img_orig.crop(box=(0, 0, 1280, 720))
+            i_right = img_orig.crop(box=(1280, 0, 2560, 720))
         elif img_orig.size == (3200, 1080):
-            i_left = img_orig.crop(box = (0, 0, 1920, 1080))
-            i_right = img_orig.crop(box = (1920, 0, 3200, 1080))
+            i_left = img_orig.crop(box=(0, 0, 1920, 1080))
+            i_right = img_orig.crop(box=(1920, 0, 3200, 1080))
         else:
             print(f"Configuration for {file_path} not set ({img_orig.size})")
             continue
@@ -190,7 +190,7 @@ def crop_images(path):
 def merge_images(path):
     """Merges all image files in the directory and save them as a combination of horizontally and vertically merged
     PNG and JPG formats."""
-    file_paths = index_directory(path, file_types = ["png", "jpg"])
+    file_paths = index_directory(path, file_types=["png", "jpg"])
     if len(file_paths) == 1:
         print("failed to merge images: need more than one image to merge")
         return
@@ -215,7 +215,7 @@ def merge_images(path):
         v_scaled_imgs.append(img.resize((max_width, round(scale_factor * img.height))))
 
     # use vstack to combine images vertically
-    imgs_comb = numpy.vstack((numpy.asarray([i for i in v_scaled_imgs], dtype = object)))
+    imgs_comb = numpy.vstack((numpy.asarray([i for i in v_scaled_imgs], dtype=object)))
     imgs_comb = Image.fromarray(imgs_comb)
     imgs_comb.save(f'{path}\\!vertical.png')
     imgs_comb.convert('RGB').save(f'{path}\\!vertical.jpg')  # discard the Alpha channel for JPG
@@ -227,7 +227,7 @@ def merge_images(path):
         h_scaled_imgs.append(img.resize((round(scale_factor * img.width), max_height)))
 
     # use hstack to combine images horizontally
-    imgs_comb = numpy.hstack((numpy.asarray([i for i in h_scaled_imgs], dtype = object)))
+    imgs_comb = numpy.hstack((numpy.asarray([i for i in h_scaled_imgs], dtype=object)))
     imgs_comb = Image.fromarray(imgs_comb)
     imgs_comb.save(f'{path}\\!horizontal.png')
     imgs_comb.convert('RGB').save(f'{path}\\!horizontal.jpg')
@@ -235,25 +235,25 @@ def merge_images(path):
 
 def convert_images(path):
     """Converts existing image files to a duplicate PNG or JPG format"""
-    file_paths = index_directory(path, file_types = ["png", "jpg"])
+    file_paths = index_directory(path, file_types=["png", "jpg"])
     for file_path in file_paths:
         file_type = file_path.split(".")[-1].lower()
         if "png" == file_type:
-            Image.open(file_paths[0]).convert('RGB').save(f"{file_path[:-4]}.jpg")
+            Image.open(file_path).convert('RGB').save(f"{file_path[:-4]}.jpg")
         elif "jpg" == file_type:
-            Image.open(file_paths[0]).save(f"{file_path[:-4]}.png")
+            Image.open(file_path).save(f"{file_path[:-4]}.png")
 
 
 def img_to_ico(path):
     """Converts image files to ICO format"""
-    for file_path in index_directory(path, file_types = ["png", "jpg"]):
+    for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = Image.open(file_path)
-        img.save(fr"{_break_path(file_path)[1]}.ico", sizes = [(256, 256), (128, 128)])
+        img.save(fr"{_break_path(file_path)[1]}.ico", sizes=[(256, 256), (128, 128)])
 
 
 def img_metadata(path):
     """Prints out image metadata"""
-    file_paths = index_directory(path, file_types = ["png", "jpg"])
+    file_paths = index_directory(path, file_types=["png", "jpg"])
     print("\n")
     for index, file_path in enumerate(file_paths):
         image = Image.open(file_path)

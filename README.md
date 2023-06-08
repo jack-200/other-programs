@@ -38,8 +38,3 @@ be copied over to another location. These functions include:
 * **filter_filetype()**: Filters out files of a specific filetype
 * **filter_regex()**: Filters out files using regular expression to search for a pattern
 * **filter_by_first_character()**: Filters out files that start with a specific character
-
-# execution_time_tester.py
-
-A simple way to compare the execution times of code in two different functions. The NUMBER_OF_EXECUTIONS variable
-dictates how many times to execute the functions. The console prints out the faster function.

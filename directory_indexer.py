@@ -85,7 +85,7 @@ def index_directory():
                 paths.append(subdir[length_of_path:] + "\\")
         for file in files:
             paths.append(os.path.join(subdir[length_of_path:], file))  # append paths relative to target path
-    paths = sorted(paths, key = str.casefold)  # sort list
+    paths = sorted(paths, key=str.casefold)  # sort list
     print(f"Found {len(paths)} files and empty folders.")
     return paths
 
@@ -96,37 +96,37 @@ while True:
     print(f"2. {filter_regex.__name__}(): {filter_regex.__doc__.split(chr(10))[0]}")
     print(f"3. {filter_by_first_character.__name__}(): {filter_by_first_character.__doc__.split(chr(10))[0]}")
     print("Q. Quit")
-    print("\nYour choice: ", end = "")
+    print("\nYour choice: ", end="")
     choice = input().lower()
 
     if choice == "q":
         quit()
 
-    print("Directory of source files: ", end = "")
+    print("Directory of source files: ", end="")
     src_path = input() + "\\"  # path should end with backslash, so it can be used as a relative path
     paths_in_directory = index_directory()
     if len(paths_in_directory) == 0:
         continue
-    print("Copy files to another directory? ", end = "")
-    print("If yes, input \"Y\" followed by a space and the path. If no, input anything else: ", end = "")
+    print("Copy files to another directory? ", end="")
+    print("If yes, input \"Y\" followed by a space and the path. If no, input anything else: ", end="")
 
     moveChoice = input().strip().lower().split(" ")
     copyOver = True if ((len(moveChoice) == 2) and (moveChoice[0] == "y")) else False
     num_copied = 0
 
     if choice == "1":
-        print("Input file type(s) to filter by. Separate multiple inputs with comma (png, jpg): ", end = "")
+        print("Input file type(s) to filter by. Separate multiple inputs with comma (png, jpg): ", end="")
         filetypes = input().lower().split(",")
         for index, filetype in enumerate(filetypes):  # remove any whitespace
             filetypes[index] = f"{filetype.strip()}"
         filter_filetype(filetypes)
 
     elif choice == "2":
-        print("Regular expression with re.search(): ", end = "")
+        print("Regular expression with re.search(): ", end="")
         expression = input()
         filter_regex(expression)
 
     elif choice == "3":
-        print("What is the character to filter by? ", end = "")
+        print("What is the character to filter by? ", end="")
         character = input()
         filter_by_first_character(character)

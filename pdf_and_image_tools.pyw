@@ -3,13 +3,11 @@ import os
 import sys
 
 import numpy
+import pypdf
 from pdf2image import convert_from_path
 from PIL import ExifTags, Image
-from pypdf._merger import PdfMerger
-from pypdf._page import PageObject
-from pypdf._reader import PdfReader
-from pypdf._writer import PdfWriter
-from PyQt5.QtWidgets import QApplication, QFormLayout, QLineEdit, QMessageBox, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QFormLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSizePolicy, \
+    QSpacerItem, QVBoxLayout, QWidget
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
@@ -18,7 +16,7 @@ POPPLER_PATH = r""
 def merge_pdfs(path):
     """Merges all the PDF files into a single resulting PDF"""
     file_paths = index_directory(path, "pdf")
-    merger = PdfMerger()
+    merger = pypdf.PdfMerger()
     for pdf in file_paths:
         merger.append(pdf)
     result_name = f"{path}\\!{_break_path(file_paths[0])[2]}"  # "! {first PDF}" as result name
@@ -31,16 +29,16 @@ def stitch_pdfs(path):
     """Stitches all the PDF pages of a single PDF file into a single page. For each PDF file, there will be two
     resulting versions - one with the pages stitched vertically and another with the pages stitched horizontally."""
     for file_name in index_directory(path, "pdf"):
-        pdf_file = PdfReader(open(file_name, "rb"), strict=False)
-        if pdf_file.getNumPages() < 2:
+        pdf_file = pypdf.PdfReader(open(file_name, "rb"))
+        if len(pdf_file.pages) < 2:
             print(f"Skipped {file_name}: Too little pages")
             continue
         max_width = max_height = total_width = total_height = 0
         pages_data = []
-        for count in range(pdf_file.getNumPages()):  # gather page dimension info
-            pdf_page = pdf_file.getPage(count)
+        for count in range(len(pdf_file.pages)):  # gather page dimension info
+            pdf_page = pdf_file.pages[count]
             pages_data.append(pdf_page)
-            width, height = pdf_page.mediaBox.getWidth(), pdf_page.mediaBox.getHeight()
+            width, height = pdf_page.mediabox.width, pdf_page.mediabox.height
             total_width += width
             total_height += height
             if width > max_width:
@@ -50,35 +48,55 @@ def stitch_pdfs(path):
 
         result_name_pt1 = f"{'.'.join(file_name.split('.')[:-1])}"
         x_pos = y_pos = 0
-        new_page = PageObject.createBlankPage(None, max_width, total_height)  # vertically stitch
+        new_page = pypdf.PageObject.create_blank_page(width=max_width, height=total_height)  # vertically stitch
         for pdf_page in pages_data[::-1]:  # reverse list
             new_page.mergeTranslatedPage(pdf_page, 0, y_pos)
-            y_pos += pdf_page.mediaBox.getHeight()
-        output = PdfWriter()
+            y_pos += pdf_page.mediabox.height
+        output = pypdf.PdfWriter()
         output.add_page(new_page)
         output.write(open(f"{result_name_pt1} !vertical.pdf", "wb"))  # append " !vertical" to file name
 
-        new_page = PageObject.createBlankPage(None, total_width, max_height)  # horizontally stitch
+        new_page = pypdf.PageObject.create_blank_page(width=total_width, height=max_height)  # horizontally stitch
         for pdf_page in pages_data:
             new_page.mergeTranslatedPage(pdf_page, x_pos, 0)
-            x_pos += pdf_page.mediaBox.getWidth()
-        output = PdfWriter()
+            x_pos += pdf_page.mediabox.width
+        output = pypdf.PdfWriter()
         output.add_page(new_page)
         output.write(open(f"{result_name_pt1} !horizontal.pdf", "wb"))  # append " !horizontal" to file name
 
 
-def resave_pdfs(path):
-    """Load and resave all the PDF files to reduce file size"""
-    for file_path in index_directory(path, "pdf"):
-        with open(file_path, "rb") as pdf:
-            old = io.BytesIO(pdf.read())
-        reader = PdfReader(old, strict=False)
-        writer = PdfWriter()
-        for page in reader.pages:
-            writer.add_page(page)
-        os.remove(file_path)
-        with open(file_path, "wb") as pdf:
-            writer.write(pdf)
+def resave_pdfs_images(path):
+    """Load and resave all the PDF files to reduce file size (results may vary) and strip metadata"""
+    # pypdf\_writer.py "NameObject("/Producer"):" line must be commented out to have no metadata
+    results = ""
+    for file_path in index_directory(path, ["pdf", "jpg", "jpeg", "png"]):
+        if file_path.endswith("pdf"):
+            with open(file_path, "rb") as pdf:
+                org = io.BytesIO(pdf.read())
+            org_size = os.path.getsize(file_path) / 1024
+            reader = pypdf.PdfReader(org)
+            writer = pypdf.PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+            os.remove(file_path)
+            with open(file_path, "wb") as pdf:
+                writer.write(pdf)
+            new_size = os.path.getsize(file_path) / 1024
+            pct_chg = f"{round(((new_size - org_size) / org_size) * 100, 1)}%"
+            results += file_path + " "
+            results += f"{round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
+        else:
+            # Load the image
+            img = Image.open(file_path)
+            # Remove metadata
+            data = list(img.getdata())
+            img_without_metadata = Image.new(img.mode, img.size)
+            img_without_metadata.putdata(data)
+            # Save the image without metadata
+            img_without_metadata.save(f"{_break_path(file_path)[1]} 1.{_break_path(file_path)[2]}")
+
+    label.setText(results)
+    print(results)
 
 
 def encrypt_pdf(path):
@@ -88,8 +106,8 @@ def encrypt_pdf(path):
         return
     for file_path in index_directory(path, "pdf"):
         with open(file_path, "rb") as f:
-            pdf_reader = PdfReader(f)
-            pdf = PdfWriter()
+            pdf_reader = pypdf.PdfReader(f)
+            pdf = pypdf.PdfWriter()
             pdf.append_pages_from_reader(pdf_reader)
             pdf.encrypt(user_password=input_text)
         with open(f"{path}\\!encrypted {_break_path(file_path)[2]}", "wb") as f2:
@@ -103,8 +121,9 @@ def save_page_range(path, first_page, last_page):
     if not input_text:
         return
     input_text = input_text.split("-")
+    print(input_text)
     if len(input_text) > 1:
-        if input_text[0] != "" and int(input_text[0]) >= 0:  # 9-99
+        if int(input_text[0]) >= 0 and int(input_text[1]) > 0:  # 9-99
             first_page = input_text[0]
             last_page = input_text[1]
         elif input_text[0] == "":  # -99
@@ -118,10 +137,12 @@ def save_page_range(path, first_page, last_page):
 
     for file_path in index_directory(path, "pdf"):
         if last_page == -1:
-            last_page = PdfReader(file_path).getNumPages()
+            with open(file_path, 'rb') as f:
+                last_page = pypdf.PdfReader(f)
+                last_page = len(last_page.pages)
         first_page = int(first_page)
         last_page = int(last_page)
-        merger = PdfMerger()
+        merger = pypdf.PdfMerger()
         merger.append(file_path, pages=(first_page - 1, last_page))
         merger.write(f"{path}\\{first_page}-{last_page} {_break_path(file_path)[2]}")
         merger.close()
@@ -140,7 +161,7 @@ def image_to_pdf(path):
     """Converts all PNG and JPG files to separate PDF files"""
     for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = Image.open(file_path)
-        img.save(f"{_break_path(file_path)[1]}.pdf")
+        img.save(f"{_break_path(file_path)[1]}.pdf", "PDF", resolution=300)
 
 
 def input_box(row_spacing, col_spacing, button_width, button_height, col_spacing_actual):
@@ -190,7 +211,7 @@ def crop_images(path):
 def merge_images(path):
     """Merges all image files in the directory and save them as a combination of horizontally and vertically merged
     PNG and JPG formats."""
-    file_paths = index_directory(path, file_types=["png", "jpg"])
+    file_paths = index_directory(path, file_types=["png", "jpg", "jpeg"])
     if len(file_paths) == 1:
         print("failed to merge images: need more than one image to merge")
         return
@@ -251,19 +272,36 @@ def img_to_ico(path):
         img.save(fr"{_break_path(file_path)[1]}.ico", sizes=[(256, 256), (128, 128)])
 
 
-def img_metadata(path):
-    """Prints out image metadata"""
-    file_paths = index_directory(path, file_types=["png", "jpg"])
-    print("\n")
-    for index, file_path in enumerate(file_paths):
-        image = Image.open(file_path)
-        print(f"{index + 1}. {file_path}")
-        print(f"\tWidth, Height, Size, Mode = ({image.width}, {image.height}) {image.format} {image.mode}")
-        exif_data = image.getexif()
-        for tag_id in exif_data:
-            tag_name = ExifTags.TAGS.get(tag_id, tag_id)
-            print(f"\t{tag_name:25}: {exif_data.get(tag_id)}")
-        print()
+def print_metadata(path):
+    """prints out the metadata of all image and PDF files"""
+    to_label = ""
+    f_paths = index_directory(path, file_types=["jpeg", "jpg", "pdf", "png"])
+    for i, f_path in enumerate(f_paths):
+        to_label += _print_to_label(f"\n{i + 1}. {f_path}\n")
+        if f_path.endswith((".png", ".jpg", ".jpeg")):
+            img = Image.open(f_path)
+            to_label += _print_to_label(
+                f"\tWidth, Height, Size, Mode = ({img.width}, {img.height}) {img.format} {img.mode}\n")
+            exif_data = img.getexif()
+            for tag_id in exif_data:
+                tag_name = ExifTags.TAGS.get(tag_id, tag_id)
+                spaces = 25 - len(tag_name)
+                to_label += _print_to_label(f"\t{tag_name + ' ' * spaces}: {exif_data.get(tag_id)}\n")
+        elif f_path.endswith(".pdf"):
+            with open(f_path, "rb") as f:
+                pdf = pypdf.PdfReader(f)
+                info = pdf.metadata
+                if info:
+                    for info_i in info:
+                        to_label += _print_to_label(f"{info_i}: {info[info_i]}\n")
+                else:
+                    to_label += _print_to_label("No Metadata")
+    label.setText(to_label)
+
+
+def _print_to_label(content):
+    print(content, end="")
+    return content
 
 
 def restart():
@@ -329,7 +367,7 @@ def _get_input():
     try:
         global input_text
         text = input_text
-        return text
+        return str(text)
     except NameError:
         return False
 
@@ -344,13 +382,13 @@ if __name__ == "__main__":
     rowSpacing = buttonHeight + rowSpacingActual
     colSpacing = buttonWidth + colSpacingActual
     widget.resize(5 * colSpacing - colSpacingActual,
-                  4 * rowSpacing - rowSpacingActual)  # ints define how many rows/col to scale window to
+                  5 * rowSpacing - rowSpacingActual)  # ints define how many rows/col to scale window to
     widget.setWindowTitle("PDF and Image Tools")
 
     # row 1
     program_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER))
     program_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER))
-    program_button("Resave PDFs", 1, 3, lambda: resave_pdfs(PATH_TO_FOLDER))
+    program_button("Resave Files", 1, 3, lambda: resave_pdfs_images(PATH_TO_FOLDER))
     program_button("Encrypt PDF", 1, 4, lambda: encrypt_pdf(PATH_TO_FOLDER))
     program_button("Save Page Range", 1, 5, lambda: save_page_range(PATH_TO_FOLDER, 0, 0))
 
@@ -365,11 +403,19 @@ if __name__ == "__main__":
     program_button("Merge Images", 3, 2, lambda: merge_images(PATH_TO_FOLDER))
     program_button("Convert Images", 3, 3, lambda: convert_images(PATH_TO_FOLDER))
     program_button("Image to ICO", 3, 4, lambda: img_to_ico(PATH_TO_FOLDER))
-    program_button("Image Metadata", 3, 5, lambda: img_metadata(PATH_TO_FOLDER))
+    program_button("Print Metadata", 3, 5, lambda: print_metadata(PATH_TO_FOLDER))
 
     # row 4
     program_button("Restart", 4, 1, restart)
     program_button("Quit", 4, 2, quit_clicked)
 
+    # bottom text
+    layout = QVBoxLayout(widget)
+    label = QLabel("Program Idle")
+    spacer = QSpacerItem(10, 4 * rowSpacing, QSizePolicy.Minimum, QSizePolicy.Fixed)
+    layout.addSpacerItem(spacer)
+    layout.addWidget(label)
+    label.move(0, 500)
+
     widget.show()
-    sys.exit(app.exec_())
+    app.exec_()

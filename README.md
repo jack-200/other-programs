@@ -32,12 +32,18 @@ here: https://github.com/Belval/pdf2image
 ![image](https://github.com/jack-200/Other-Programs/assets/86848773/cba73f51-605f-42a1-9ada-b1cdc57a47d4)
 ![image](https://github.com/jack-200/Other-Programs/assets/86848773/8d8890ca-0123-44ec-baca-5cf881caddd2)
 
-Simple standalone tool to download YouTube videos as MP4 and webpages as PDF. wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/. Files are saved in same location as script. 
+Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
+* wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/.
+* Inputting a YouTube playlist will copy the all video links in that playlist to the clipboard.
+* Files are saved in same location as script.
 
 To run, the following packages must be installed:
 ```
 python -m pip install --upgrade pdfkit
+python -m pip install --upgrade pyperclip
+python -m pip install --upgrade requests
 python -m pip install --upgrade pytube
+python -m pip install --upgrade bs4
 ```
 
 <br><br>

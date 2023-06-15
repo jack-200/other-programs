@@ -1,8 +1,12 @@
+import json
 import os
 import tkinter as tk
 
 import pdfkit
+import pyperclip
 import pytube
+import requests
+from bs4 import BeautifulSoup
 
 
 def download_main():
@@ -12,16 +16,11 @@ def download_main():
         if "youtube.com/watch?v=" in url:
             ytc = _get_video_info(url)
             ytc.streams.get_highest_resolution().download(DIR)
-            print("Video Downloaded")
+            print(f"Video Downloaded in {ytc.streams.get_highest_resolution().resolution}")
+        elif "youtube.com/playlist?list=" in url:
+            _get_playlist_info(url)
         else:
             _download_webpage(url)
-
-
-def _download_webpage(link):
-    PATH_WKHTMLTOPDF = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-    config = pdfkit.configuration(wkhtmltopdf=PATH_WKHTMLTOPDF)
-    pdfkit.from_url(url=link, output_path=fr"{DIR}\webpage.pdf", configuration=config)
-    print(f"{link} saved as PDF")
 
 
 def _get_video_info(link):
@@ -29,8 +28,37 @@ def _get_video_info(link):
     ytc_info = ytc.vid_info
     print(f"\"{ytc_info['videoDetails']['title']}\" by {ytc_info['videoDetails']['author']}", end=", ")
     print(f"{format(int(ytc_info['videoDetails']['viewCount']), ',d')} views, ", end="")
-    print(f"{ytc_info['videoDetails']['lengthSeconds']}s, {ytc.publish_date}")
+    print(f"{ytc_info['videoDetails']['lengthSeconds']}s, {ytc.publish_date.strftime('%Y-%m-%d')}")
     return ytc
+
+
+def _get_playlist_info(link):
+    response = requests.get(link)
+    response = BeautifulSoup(response.content, "html.parser").prettify()
+
+    yt_data = response.replace('"', "`")
+    yt_data = next(line for line in yt_data.split("\n") if "var ytInitialData = " in line)[23:-1]
+    yt_data = json.loads(yt_data.replace("`", '"'))
+    yt_data = yt_data["contents"]["twoColumnBrowseResultsRenderer"]["tabs"][0]["tabRenderer"]["content"][
+        "sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"][0]["playlistVideoListRenderer"][
+        "contents"]
+
+    video_urls = []
+    print(f"{len(yt_data)} YouTube videos")
+    for video in yt_data:
+        title = video["playlistVideoRenderer"]["title"]["runs"][0]["text"]
+        video_url = f'https://www.youtube.com/watch?v={video["playlistVideoRenderer"]["videoId"]}'
+        video_urls.append(video_url)
+        print(f"{title}, {video_url}")
+    pyperclip.copy("\n".join(video_urls))
+    print(f"{len(video_urls)} YouTube links copied to clipboard")
+
+
+def _download_webpage(link):
+    path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+    pdfkit.from_url(url=link, output_path=fr"{DIR}\webpage.pdf", configuration=config)
+    print(f"{link} saved as PDF")
 
 
 if __name__ == "__main__":

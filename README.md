@@ -30,7 +30,7 @@ here: https://github.com/Belval/pdf2image
 
 # web_content_downloader.py
 ![image](https://github.com/jack-200/Other-Programs/assets/86848773/cba73f51-605f-42a1-9ada-b1cdc57a47d4)
-![image](https://github.com/jack-200/Other-Programs/assets/86848773/8d8890ca-0123-44ec-baca-5cf881caddd2)
+![image](https://github.com/jack-200/Other-Programs/assets/86848773/3933d1f2-21cb-4f3e-92cc-15de7be5c46b)
 
 Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
 * wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/.

@@ -6,8 +6,8 @@ import numpy
 import pypdf
 from pdf2image import convert_from_path
 from PIL import ExifTags, Image
-from PyQt5.QtWidgets import QApplication, QFormLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSizePolicy, \
-    QSpacerItem, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (QApplication, QFormLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
+                             QSpacerItem, QVBoxLayout, QWidget, )
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
@@ -20,6 +20,7 @@ def merge_pdfs(path):
     for pdf in file_paths:
         merger.append(pdf)
     result_name = f"{path}\\!{_break_path(file_paths[0])[2]}"  # "! {first PDF}" as result name
+
     merger.write(f"{result_name}")
     merger.close()
     print(f"\nMerge PDF Result: {result_name}")
@@ -27,7 +28,8 @@ def merge_pdfs(path):
 
 def stitch_pdfs(path):
     """Stitches all the PDF pages of a single PDF file into a single page. For each PDF file, there will be two
-    resulting versions - one with the pages stitched vertically and another with the pages stitched horizontally."""
+    resulting versions - one with the pages stitched vertically and another with the pages stitched horizontally.
+    """
     for file_name in index_directory(path, "pdf"):
         pdf_file = pypdf.PdfReader(open(file_name, "rb"))
         if len(pdf_file.pages) < 2:
@@ -47,33 +49,35 @@ def stitch_pdfs(path):
                 max_height = height
 
         result_name_pt1 = f"{'.'.join(file_name.split('.')[:-1])}"
-        x_pos = y_pos = 0
-        new_page = pypdf.PageObject.create_blank_page(width=max_width, height=total_height)  # vertically stitch
-        for pdf_page in pages_data[::-1]:  # reverse list
-            new_page.mergeTranslatedPage(pdf_page, 0, y_pos)
-            y_pos += pdf_page.mediabox.height
+
+        new_page = pypdf.PageObject.create_blank_page(width=max_width, height=total_height)
+        for index, pdf_page in enumerate(pages_data):
+            new_page.merge_page(pdf_page, expand=True)
+            if index != len(pages_data) - 1:
+                new_page.add_transformation(pypdf.Transformation().translate(ty=pdf_page.mediabox.height))
         output = pypdf.PdfWriter()
         output.add_page(new_page)
-        output.write(open(f"{result_name_pt1} !vertical.pdf", "wb"))  # append " !vertical" to file name
+        output.write(open(f"{result_name_pt1} !vertical.pdf", "wb"))
 
-        new_page = pypdf.PageObject.create_blank_page(width=total_width, height=max_height)  # horizontally stitch
-        for pdf_page in pages_data:
-            new_page.mergeTranslatedPage(pdf_page, x_pos, 0)
-            x_pos += pdf_page.mediabox.width
+        new_page = pypdf.PageObject.create_blank_page(width=total_width, height=max_height)
+        for index, pdf_page in enumerate(pages_data[::-1]):
+            new_page.merge_page(pdf_page, expand=True)
+            if index != len(pages_data) - 1:
+                new_page.add_transformation(pypdf.Transformation().translate(tx=pdf_page.mediabox.width))
         output = pypdf.PdfWriter()
         output.add_page(new_page)
-        output.write(open(f"{result_name_pt1} !horizontal.pdf", "wb"))  # append " !horizontal" to file name
+        output.write(open(f"{result_name_pt1} !horizontal.pdf", "wb"))
 
 
-def resave_pdfs_images(path):
-    """Load and resave all the PDF files to reduce file size (results may vary) and strip metadata"""
-    # pypdf\_writer.py "NameObject("/Producer"):" line must be commented out to have no metadata
+def resave_files(path):
+    """Resave all the PDF and image files to strip metadata and potentially reduce file size"""
+    # in pypdf\_writer.py: "NameObject("/Producer"):" line must be commented out to have no PDF metadata
     results = ""
-    for file_path in index_directory(path, ["pdf", "jpg", "jpeg", "png"]):
+    for file_path in index_directory(path, ["jpeg", "jpg", "pdf", "png"]):
+        org_size = os.path.getsize(file_path) / 1024
         if file_path.endswith("pdf"):
             with open(file_path, "rb") as pdf:
                 org = io.BytesIO(pdf.read())
-            org_size = os.path.getsize(file_path) / 1024
             reader = pypdf.PdfReader(org)
             writer = pypdf.PdfWriter()
             for page in reader.pages:
@@ -81,19 +85,15 @@ def resave_pdfs_images(path):
             os.remove(file_path)
             with open(file_path, "wb") as pdf:
                 writer.write(pdf)
-            new_size = os.path.getsize(file_path) / 1024
-            pct_chg = f"{round(((new_size - org_size) / org_size) * 100, 1)}%"
-            results += file_path + " "
-            results += f"{round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
         else:
-            # Load the image
             img = Image.open(file_path)
-            # Remove metadata
-            data = list(img.getdata())
             img_without_metadata = Image.new(img.mode, img.size)
-            img_without_metadata.putdata(data)
-            # Save the image without metadata
-            img_without_metadata.save(f"{_break_path(file_path)[1]} 1.{_break_path(file_path)[2]}")
+            img_without_metadata.putdata(list(img.getdata()))
+            img_without_metadata.save(file_path)
+        new_size = os.path.getsize(file_path) / 1024
+        pct_chg = f"{round(((new_size - org_size) / org_size) * 100, 1)}%"
+        results += file_path + " "
+        results += f"{round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
 
     label.setText(results)
     print(results)
@@ -123,7 +123,7 @@ def save_page_range(path, first_page, last_page):
     input_text = input_text.split("-")
     print(input_text)
     if len(input_text) > 1:
-        if int(input_text[0]) >= 0 and int(input_text[1]) > 0:  # 9-99
+        if input_text[0] and int(input_text[0]) >= 0 and input_text[1] and int(input_text[1]) > 0:  # 9-99
             first_page = input_text[0]
             last_page = input_text[1]
         elif input_text[0] == "":  # -99
@@ -137,7 +137,7 @@ def save_page_range(path, first_page, last_page):
 
     for file_path in index_directory(path, "pdf"):
         if last_page == -1:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 last_page = pypdf.PdfReader(f)
                 last_page = len(last_page.pages)
         first_page = int(first_page)
@@ -161,7 +161,7 @@ def image_to_pdf(path):
     """Converts all PNG and JPG files to separate PDF files"""
     for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = Image.open(file_path)
-        img.save(f"{_break_path(file_path)[1]}.pdf", "PDF", resolution=300)
+        img.save(f"{_break_path(file_path)[1]}.pdf", "PDF", resolution=img.width / 850 * 100)
 
 
 def input_box(row_spacing, col_spacing, button_width, button_height, col_spacing_actual):
@@ -211,7 +211,7 @@ def crop_images(path):
 def merge_images(path):
     """Merges all image files in the directory and save them as a combination of horizontally and vertically merged
     PNG and JPG formats."""
-    file_paths = index_directory(path, file_types=["png", "jpg", "jpeg"])
+    file_paths = index_directory(path, file_types=["jpeg", "jpg", "png"])
     if len(file_paths) == 1:
         print("failed to merge images: need more than one image to merge")
         return
@@ -238,8 +238,8 @@ def merge_images(path):
     # use vstack to combine images vertically
     imgs_comb = numpy.vstack((numpy.asarray([i for i in v_scaled_imgs], dtype=object)))
     imgs_comb = Image.fromarray(imgs_comb)
-    imgs_comb.save(f'{path}\\!vertical.png')
-    imgs_comb.convert('RGB').save(f'{path}\\!vertical.jpg')  # discard the Alpha channel for JPG
+    imgs_comb.save(f"{path}\\!vertical.png")
+    imgs_comb.convert("RGB").save(f"{path}\\!vertical.jpg")  # discard the Alpha channel for JPG
 
     # merge horizontally: scale all images to the largest height value
     h_scaled_imgs = []
@@ -250,8 +250,8 @@ def merge_images(path):
     # use hstack to combine images horizontally
     imgs_comb = numpy.hstack((numpy.asarray([i for i in h_scaled_imgs], dtype=object)))
     imgs_comb = Image.fromarray(imgs_comb)
-    imgs_comb.save(f'{path}\\!horizontal.png')
-    imgs_comb.convert('RGB').save(f'{path}\\!horizontal.jpg')
+    imgs_comb.save(f"{path}\\!horizontal.png")
+    imgs_comb.convert("RGB").save(f"{path}\\!horizontal.jpg")
 
 
 def convert_images(path):
@@ -260,7 +260,7 @@ def convert_images(path):
     for file_path in file_paths:
         file_type = file_path.split(".")[-1].lower()
         if "png" == file_type:
-            Image.open(file_path).convert('RGB').save(f"{file_path[:-4]}.jpg")
+            Image.open(file_path).convert("RGB").save(f"{file_path[:-4]}.jpg")
         elif "jpg" == file_type:
             Image.open(file_path).save(f"{file_path[:-4]}.png")
 
@@ -269,7 +269,7 @@ def img_to_ico(path):
     """Converts image files to ICO format"""
     for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = Image.open(file_path)
-        img.save(fr"{_break_path(file_path)[1]}.ico", sizes=[(256, 256), (128, 128)])
+        img.save(rf"{_break_path(file_path)[1]}.ico", sizes=[(256, 256), (128, 128)])
 
 
 def print_metadata(path):
@@ -284,7 +284,7 @@ def print_metadata(path):
                 f"\tWidth, Height, Size, Mode = ({img.width}, {img.height}) {img.format} {img.mode}\n")
             exif_data = img.getexif()
             for tag_id in exif_data:
-                tag_name = ExifTags.TAGS.get(tag_id, tag_id)
+                tag_name = str(ExifTags.TAGS.get(tag_id, tag_id))
                 spaces = 25 - len(tag_name)
                 to_label += _print_to_label(f"\t{tag_name + ' ' * spaces}: {exif_data.get(tag_id)}\n")
         elif f_path.endswith(".pdf"):
@@ -388,7 +388,7 @@ if __name__ == "__main__":
     # row 1
     program_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER))
     program_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER))
-    program_button("Resave Files", 1, 3, lambda: resave_pdfs_images(PATH_TO_FOLDER))
+    program_button("Resave Files", 1, 3, lambda: resave_files(PATH_TO_FOLDER))
     program_button("Encrypt PDF", 1, 4, lambda: encrypt_pdf(PATH_TO_FOLDER))
     program_button("Save Page Range", 1, 5, lambda: save_page_range(PATH_TO_FOLDER, 0, 0))
 

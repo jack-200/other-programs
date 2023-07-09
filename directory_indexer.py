@@ -12,7 +12,7 @@ def filter_filetype(filetypes):
     results = []
     for filepath in paths_in_directory:
         if not filepath.endswith("\\"):  # skip empty folders
-            if filepath.split(".")[-1] in filetypes:  # if correct file type
+            if filepath.split(".")[-1] in filetypes:
                 copy_over(f"{src_path}{filepath}")
                 results.append(filepath)
     print(f"\n{len(results)} of {len(paths_in_directory)} are of the specified filetype")
@@ -27,9 +27,9 @@ def filter_regex(pattern):
     """
     results = []
     for path in paths_in_directory:
-        if path.endswith("\\"):  # skip paths that lead to empty folder
+        if path.endswith("\\"):
             continue
-        file_name = path.split("\\")[-1]  # only keep file name section of path
+        file_name = path.split("\\")[-1]
         search_result = re.search(pattern, file_name)
         if search_result:
             copy_over(f"{src_path}{path}")
@@ -52,8 +52,7 @@ def filter_by_first_character(char):
             copy_over(f"{src_path}{path}")
             results.append(path)
             continue
-    # print out count even if zero files
-    print(f"{len(results)} of {len(paths_in_directory)} paths begin with \"{char}\"")
+    print(f'{len(results)} of {len(paths_in_directory)} paths begin with "{char}"')
     print(f"{num_copied} files were copied over")
 
 
@@ -65,7 +64,7 @@ def copy_over(source):
     """
     if copyOver:
         dst_path = f"{moveChoice[1]}\\{source.split(chr(92))[-1]}"
-        if not os.path.exists(dst_path):  # make sure nothing is overwritten
+        if not os.path.exists(dst_path):
             shutil.copy(source, dst_path)
             global num_copied
             num_copied += 1
@@ -80,13 +79,25 @@ def index_directory():
     paths = []
     length_of_path = len(src_path)
     for subdir, dirs, files in os.walk(src_path):
-        if dirs == files == []:  # if there are no files in a folder, add that folder to list with a backslash appended
+        if dirs == files == []:  # if no files in folder
             if subdir != src_path:  # make sure that empty folder is not the source folder
-                paths.append(subdir[length_of_path:] + "\\")
+                paths.append(subdir[length_of_path:] + "\\")  # add with backslash
         for file in files:
             paths.append(os.path.join(subdir[length_of_path:], file))  # append paths relative to target path
     paths = sorted(paths, key=str.casefold)  # sort list
-    print(f"Found {len(paths)} files and empty folders.")
+    print(f"\nFound {len(paths)} files and empty folders.")
+
+    file_types = {}
+    for path in paths:
+        if "." in path:
+            file_type = path.split(".")[-1].strip()
+            if file_type not in file_types:
+                file_types[file_type] = 1
+            else:
+                file_types[file_type] += 1
+    file_types = dict(sorted(file_types.items(), key=lambda x: x[1], reverse=True))
+    print(file_types)
+
     return paths
 
 
@@ -103,21 +114,21 @@ while True:
         quit()
 
     print("Directory of source files: ", end="")
-    src_path = input() + "\\"  # path should end with backslash, so it can be used as a relative path
+    src_path = input() + "\\"
     paths_in_directory = index_directory()
     if len(paths_in_directory) == 0:
         continue
     print("Copy files to another directory? ", end="")
-    print("If yes, input \"Y\" followed by a space and the path. If no, input anything else: ", end="")
+    print('If yes, input "Y" followed by a space and the path. If no, input anything else: ', end="", )
 
     moveChoice = input().strip().lower().split(" ")
-    copyOver = True if ((len(moveChoice) == 2) and (moveChoice[0] == "y")) else False
+    copyOver = True if ((len(moveChoice) > 1) and (moveChoice[0] == "y")) else False
     num_copied = 0
 
     if choice == "1":
-        print("Input file type(s) to filter by. Separate multiple inputs with comma (png, jpg): ", end="")
+        print("Input file type(s) to filter by. Separate multiple inputs with comma (png, jpg): ", end="", )
         filetypes = input().lower().split(",")
-        for index, filetype in enumerate(filetypes):  # remove any whitespace
+        for index, filetype in enumerate(filetypes):
             filetypes[index] = f"{filetype.strip()}"
         filter_filetype(filetypes)
 

@@ -48,12 +48,6 @@ python -m pip install --upgrade requests
 
 <br><br>
 
-# Optimizations.bat
-
-Windows Batch File to update important Python packages, run disk cleanup, defrag C drive, repair windows image, run full Microsoft Defender Antivirus scan, and other performance-improving actions.
-
-<br><br>
-
 # directory_indexer.py
 
 Console-based program with functions that filter file names in three different ways. Optionally, the search results can

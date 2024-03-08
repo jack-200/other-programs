@@ -28,7 +28,7 @@ def copy_file_to_destination(file_name):
         global num_copied
         num_copied += 1
     else:
-        print(f"Skipped {destination_file_path}")
+        print(f"Skipped {os.path.join(source_path, file_name)}")
 
 
 def index_directory():

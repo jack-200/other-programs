@@ -61,6 +61,8 @@ python -m pip install --upgrade requests
 
 # [Window Manager](GUI-Applications/window_manager/window_manager.pyw)
 
+![image](https://github.com/jack-200/other-programs/assets/86848773/fdedc72a-0016-46e0-8cb8-ab6aac16fd14)
+
 A tool for managing windows on the desktop with the following functionalities:
 
 * **Print:** Outputs details (title, position, size) of all visible windows.

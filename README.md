@@ -2,7 +2,7 @@
 
 This is a collection of standalone programs that offer tools for file management, system optimization, and programming.
 
-# [pdf_and_image_tools.pyw](GUI-Applications/pdf_and_image_tools.pyw)
+# [PDF and Image Tools](GUI-Applications/pdf_and_image_tools.pyw)
 
 ![image](https://github.com/jack-200/other-programs/assets/86848773/51f71f89-5644-4c4c-b7d4-956c193e49ac)
 
@@ -36,7 +36,7 @@ here: https://github.com/Belval/pdf2image
 
 <br><br>
 
-# [web_content_downloader.py](GUI-Applications/web_content_downloader/web_content_downloader.py)
+# [Web Content Downloader](GUI-Applications/web_content_downloader/web_content_downloader.py)
 
 ![image](https://github.com/jack-200/other-programs/assets/86848773/f61602b8-f7b5-4e7f-a7c1-36cd3c115d47)
 ![image](https://github.com/jack-200/Other-Programs/assets/86848773/3933d1f2-21cb-4f3e-92cc-15de7be5c46b)
@@ -59,11 +59,16 @@ python -m pip install --upgrade requests
 
 <br><br>
 
-# directory_indexer.py
+# [Directory Filter](GUI-Applications/directory_filter.pyw)
 
-Console-based program with functions that filter file names in three different ways. Optionally, the search results can
-be copied over to another location. These functions include:
+![image](https://github.com/jack-200/other-programs/assets/86848773/4d4429af-28c5-4db4-a068-150aab34edf2)
 
-* **filter_filetype()**: Filters out files of a specific filetype
-* **filter_regex()**: Filters out files using regular expression to search for a pattern
-* **filter_by_first_character()**: Filters out files that start with a specific character
+A tool for filtering files in a directory with the following functionalities:
+
+* **Filter files by file type:** Files in the source directory that match the specified list of file types.
+
+* **Filter files by substring:** Files in the source directory whose names contain the specified substring.
+
+* **Filter files by regex:** Files in the source directory whose names match the specified regular expression pattern.
+
+* **Copy files:** The filtered files can be copied to a specified destination directory.

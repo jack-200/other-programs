@@ -2,9 +2,9 @@
 
 This is a collection of standalone programs that offer tools for file management, system optimization, and programming.
 
-# pdf_and_image_tool.pyw
+# [pdf_and_image_tools.pyw](GUI-Applications/pdf_and_image_tools.pyw)
 
-![image](https://github.com/jack-200/other-programs/assets/86848773/36828772-6db2-4904-a790-3283728a1d60)
+![image](https://github.com/jack-200/other-programs/assets/86848773/51f71f89-5644-4c4c-b7d4-956c193e49ac)
 
 This program comes with a GUI and buttons connecting to various PDF and image functions. The constant variable
 PATH_TO_FOLDER must be changed to the desired directory. The constant variable POPPLER_PATH must be changed to

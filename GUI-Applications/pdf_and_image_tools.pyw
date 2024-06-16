@@ -391,7 +391,7 @@ def get_image_colors(directory_path):
 
 
 def crop_by_90(directory_path):
-    """"Crops images by 90% of their dimensions, removing the outer parts of the image."""
+    """Crops images by 90% of their dimensions, removing the outer parts of the image."""
     for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
         img = Image.open(full_file_path)
         width, height = img.size

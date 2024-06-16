@@ -11,16 +11,15 @@ PATH_TO_FOLDER must be changed to the desired directory. The constant variable P
 the ```bin``` folder of poppler. Instructions to install poppler can be found in the README
 here: https://github.com/Belval/pdf2image
 
-* **Merge PDFs**: Merges all the PDF files into a single resulting PDF file.
-* **Stitch PDFs**: Stiches all pages of a PDF into one, creating two versions: one with vertical stitching, another with
-  horizontal.
-* **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
-* **Encrypt PDF**: Encrypts all PDF files using user-inputted key.
+* **Merge PDFs**: Combines all PDFs in the directory into one PDF file.
+* **Stitch PDFs**: Stitches all PDF pages into one, creating vertical and horizontal versions.
+* **Encrypt PDF**: Encrypts PDFs in the directory with the user-provided key.
 * **Save Page Range**: Saves a range of pages from each PDF file. Formats: '9-99' for pages 9 to 99, '-99' for 1 to
   99, '99-' for 99 onwards, '99' for page 99 only.
+* **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
 * **PDF To Image**: Converts PDF pages to individual PNG files.
 * **Image To PDF**: Converts PNG and JPG files to individual PDFs.
-* **Sanitize**: Strips metadata and sets a generic name.
+* **Sanitize**: Strips metadata and sets a generic file name.
 * **Crop Images**: Crops images based on predefined dimensions.
 * **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and
   vertically merged PNG and JPG formats.
@@ -28,7 +27,11 @@ here: https://github.com/Belval/pdf2image
 * **Img To Ico**: Converts image files to ICO format
 * **Print Metadata**: Prints out the metadata for all image and PDF files.
 * **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
-* **Restart**: Restarts the program as a quick way to apply any code changes and detach from using files.
+* **Get Image Colors**: Get the average color and most common colors of all images in the directory.
+* **Crop By 90**: Crops images by 90% of their dimensions, removing the outer parts of the image.
+* **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
+* **Restart Program**: Restarts the program to apply code changes and detach from file usage.
+* **Quit**: Handle quit button click event.
 * Files are processed in alphabetical order
 
 <br><br>

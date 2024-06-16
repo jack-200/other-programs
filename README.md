@@ -36,9 +36,9 @@ here: https://github.com/Belval/pdf2image
 
 <br><br>
 
-# web_content_downloader.py
+# [web_content_downloader.py](GUI-Applications/web_content_downloader/web_content_downloader.py)
 
-![image](https://github.com/jack-200/Other-Programs/assets/86848773/cba73f51-605f-42a1-9ada-b1cdc57a47d4)
+![image](https://github.com/jack-200/other-programs/assets/86848773/f61602b8-f7b5-4e7f-a7c1-36cd3c115d47)
 ![image](https://github.com/jack-200/Other-Programs/assets/86848773/3933d1f2-21cb-4f3e-92cc-15de7be5c46b)
 
 Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.

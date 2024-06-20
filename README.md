@@ -85,3 +85,15 @@ A tool for filtering files in a directory with the following functionalities:
 * **Filter files by regex:** Files in the source directory whose names match the specified regular expression pattern.
 
 * **Copy files:** The filtered files can be copied to a specified destination directory.
+
+<br><br>
+
+# [Report Generator](shell-scripts/ReportGenerator.ps1)
+
+![image](https://github.com/jack-200/other-programs/assets/86848773/9a507aaa-e7cf-4210-b8fe-28ecd79004f4)
+
+This PowerShell script generates a battery report, a system information report, and a DirectX Diagnostic report, saves them in the user's Downloads folder with the current date in the filename.
+
+* **Enable PowerShell scripts:** Use `Set-ExecutionPolicy RemoteSigned`. Note the potential security risks.
+
+* **Run scripts requiring admin rights:** Use `powershell.exe -File "C:\path\to\script.ps1"`.

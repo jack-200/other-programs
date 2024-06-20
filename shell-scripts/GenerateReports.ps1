@@ -1,3 +1,5 @@
+#Requires -RunAsAdministrator
+
 function PrintBatteryCapacity {
     param (
         [string]$FilePath
@@ -27,11 +29,8 @@ function PrintBatteryCapacity {
     }
 }
 
-# Get the current date in a locale-independent way
-$dateTime = Get-WmiObject Win32_LocalTime | ForEach-Object { "{0:D4}{1:D2}{2:D2}" -f $_.Year, $_.Month, $_.Day }
-
-# Assemble the date in "YYYY-MM-DD" format
-$currentDate = $dateTime.Insert(4, "-").Insert(7, "-")
+# Get today's date in the format YYYY-MM-DD
+$currentDate = (Get-Date).ToString("yyyy-MM-dd")
 
 # Generate the battery and system information report with the date in the filename
 $batteryReportPath = Join-Path $env:userprofile "Downloads\battery-report-$currentDate.html"
@@ -43,5 +42,9 @@ $systemInfoPath = Join-Path $env:userprofile "Downloads\system-info-$currentDate
 msinfo32 /nfo "$systemInfoPath"
 Wait-Process -Name msinfo32
 Write-Host "System information saved: $systemInfoPath`n"
+
+$dxdiagPath = Join-Path $env:userprofile "Downloads\DxDiag-$currentDate.txt"
+Start-Process -FilePath "dxdiag.exe" -ArgumentList "/t $dxdiagPath" -NoNewWindow -Wait
+Write-Host "DxDiag information saved to $dxdiagPath`n"
 
 Pause

@@ -90,7 +90,7 @@ A tool for filtering files in a directory with the following functionalities:
 
 # [Report Generator](shell-scripts/ReportGenerator.ps1)
 
-![image](https://github.com/jack-200/other-programs/assets/86848773/9a507aaa-e7cf-4210-b8fe-28ecd79004f4)
+![image](https://github.com/jack-200/other-programs/assets/86848773/43e68edb-0c8f-4773-a053-147f9e04e3c2)
 
 This PowerShell script generates a battery report, a system information report, and a DirectX Diagnostic report, saves them in the user's Downloads folder with the current date in the filename.
 

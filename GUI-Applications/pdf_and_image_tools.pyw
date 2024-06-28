@@ -10,8 +10,9 @@ import numpy as np
 import pypdf
 from PIL import ExifTags, Image
 from PIL import ImageEnhance
-from PyQt5.QtWidgets import (QApplication, QFormLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
-                             QSpacerItem, QVBoxLayout, QWidget, )
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
+                             QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout)
 from pdf2image import convert_from_path
 
 PATH_TO_FOLDER = r""
@@ -21,19 +22,20 @@ POPPLER_PATH = r""
 def merge_pdfs(dir_path):
     """Combines all PDFs in the directory into one PDF file."""
 
-    # Get all PDF files in the directory and merge them
-    files = index_directory(dir_path, "pdf")
+    # Initialize merger and get all PDF files in the directory
     merger = pypdf.PdfMerger()
-    for file in files:
-        merger.append(file)
+    pdf_files = index_directory(dir_path, "pdf")
 
-    # Define result file name and write the merged PDFs to it
-    result_name = f"{dir_path}\\!merged_{get_file_name(files[0])}"
-    merger.write(result_name)
+    # Append PDF files to merger
+    for pdf_file in pdf_files:
+        merger.append(pdf_file)
 
-    # Close the merger and print the result
+    # Define result file name, write the merged PDFs to it, and close the merger
+    result_pdf = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
+    merger.write(result_pdf)
     merger.close()
-    print(f"\nMerge PDF Result: {result_name}")
+
+    statusField.setText(f"\nMerge PDF Result: {result_pdf}")
 
 
 def stitch_pdfs(path):
@@ -176,7 +178,7 @@ def resave_files(path, sanitize=False):
         results += file_path + " "
         results += f"{round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
 
-    label.setText(results)
+    statusField.setText(results)
     print(results)
 
 
@@ -244,46 +246,36 @@ def merge_images(path):
     PNG and JPG formats."""
     file_paths = index_directory(path, file_types=["jpeg", "jpg", "png"])
     if len(file_paths) == 1:
-        print("failed to merge images: need more than one image to merge")
+        statusField.setText("Failed to merge images: need more than one image to merge")
         return
 
-    max_width = max_height = total_height = total_width = 0
     imgs = []
-    for file_path in file_paths:  # load image files + get page dimensions
-        img_temp = Image.open(file_path)
-        imgs.append(img_temp)
-        width, height = img_temp.size
+    total_width = total_height = max_width = max_height = 0
+
+    # Load images, calculate total and max dimensions
+    for file_path in file_paths:
+        img = Image.open(file_path)
+        imgs.append(img)
+        width, height = img.size
         total_width += width
         total_height += height
-        if width > max_width:
-            max_width = width
-        if height > max_height:
-            max_height = height
+        max_width = max(max_width, width)
+        max_height = max(max_height, height)
 
-    # merge vertically: scale all images to the largest width value
-    v_scaled_imgs = []
-    for img in imgs:
-        scale_factor = max_width / img.width
-        v_scaled_imgs.append(img.resize((max_width, round(scale_factor * img.height))))
+    # Convert images to RGB and then to arrays for stacking
+    v_scaled_imgs = [numpy.array(img.convert('RGB').resize((max_width, round(max_width / img.width * img.height)))) for
+                     img in imgs]
+    h_scaled_imgs = [numpy.array(img.convert('RGB').resize((round(max_height / img.height * img.width), max_height)))
+                     for img in imgs]
 
-    # use vstack to combine images vertically
-    imgs_comb = numpy.vstack((numpy.asarray([i for i in v_scaled_imgs], dtype=object)))
+    # Combine images vertically and horizontally, then save
+    v_imgs_comb = numpy.vstack(v_scaled_imgs)
+    Image.fromarray(v_imgs_comb).save(f"{path}\\!vertical.png")
+    Image.fromarray(v_imgs_comb).convert("RGB").save(f"{path}\\!vertical.jpg")
 
-    imgs_comb = Image.fromarray(imgs_comb)
-    imgs_comb.save(f"{path}\\!vertical.png")
-    imgs_comb.convert("RGB").save(f"{path}\\!vertical.jpg")  # discard the Alpha channel for JPG
-
-    # merge horizontally: scale all images to the largest height value
-    h_scaled_imgs = []
-    for img in imgs:
-        scale_factor = max_height / img.height
-        h_scaled_imgs.append(img.resize((round(scale_factor * img.width), max_height)))
-
-    # use hstack to combine images horizontally
-    imgs_comb = numpy.hstack((numpy.asarray([i for i in h_scaled_imgs], dtype=object)))
-    imgs_comb = Image.fromarray(imgs_comb)
-    imgs_comb.save(f"{path}\\!horizontal.png")
-    imgs_comb.convert("RGB").save(f"{path}\\!horizontal.jpg")
+    h_imgs_comb = numpy.hstack(h_scaled_imgs)
+    Image.fromarray(h_imgs_comb).save(f"{path}\\!horizontal.png")
+    Image.fromarray(h_imgs_comb).convert("RGB").save(f"{path}\\!horizontal.jpg")
 
 
 def convert_images(path):
@@ -333,7 +325,7 @@ def print_metadata(path):
                 else:
                     metadata_output += echo_content("No Metadata\n")
 
-    label.setText(metadata_output)
+    statusField.setText(metadata_output.lstrip('\n'))
 
 
 def duplicate_detector(directory_path):
@@ -357,7 +349,7 @@ def duplicate_detector(directory_path):
     for original, duplicate in duplicates:
         result_msg += f"\nOriginal: {original}\nDuplicate: {duplicate}\n"
 
-    label.setText(result_msg)
+    statusField.setText(result_msg)
 
 
 def get_image_colors(directory_path):
@@ -386,8 +378,8 @@ def get_image_colors(directory_path):
         common_colors_str = "\n".join([f"Color: {color[0]}, Frequency: {color[1]}" for color in common_colors_hex])
         results.append(f"Filename: {full_file_path}\n" + avg_color_str + "\n" + common_colors_str)
 
-    # Set the label text with all results
-    label.setText("\n\n".join(results))
+    # Set the text field with all results
+    statusField.setText("\n\n".join(results))
 
 
 def crop_by_90(directory_path):
@@ -429,6 +421,23 @@ def enhance_contrast(dir_path):
             file.write(img2pdf.convert(enhanced_images))
 
         print(f"Contrast enhanced PDF saved to: {output_path}")
+
+
+def rename_files(directory_path):
+    """Rename all files in a directory with a specified base name and sequential numbering."""
+    new_name = get_input()
+    if not new_name:
+        return
+
+    # Get all files in the directory
+    file_paths = index_directory(directory_path)
+
+    # Rename files
+    for index, file_path in enumerate(file_paths):
+        new_file_path = f"{directory_path}\\{new_name}-{index + 1}.{get_file_type(file_path)}"
+        os.rename(file_path, new_file_path)
+
+    print(f"Files renamed to {new_name}-1, {new_name}-2, etc.")
 
 
 def restart_program():
@@ -480,21 +489,49 @@ def get_all_images(directory_path):
     return image_files
 
 
-def create_button(label, row, col, action):
-    """Create a button with specified label, position, size, and action."""
-    # Create button and set its text
-    btn = QPushButton(widget)
-    btn.setText(label)
+def create_button(label, row, col, action, button_type):
+    """Create a button with specified label, position, size, action, and color based on button type."""
+    global colors_codes
 
-    # Calculate position and move the button
-    btn.move((col - 1) * col_spacing, (row - 1) * row_spacing)
+    # Determine button background color based on its type
+    bg_color = colors_codes.get(button_type, "#aaaaaa")
 
-    # Set button size and show it
-    btn.setFixedSize(btn_width, btn_height)
-    btn.show()
+    # Create button, set text, connect action, and style with CSS
+    button = QPushButton(widget)
+    button.setText(label)
+    button.clicked.connect(action)
+    button.setStyleSheet(f"background-color: {bg_color}; color: black;")
 
-    # Connect button click to the provided function
-    btn.clicked.connect(action)
+    # Position, size, and display the button
+    button.move((col - 1) * col_spacing, (row - 1) * row_spacing)
+    button.setFixedSize(btn_width, btn_height)
+    button.show()
+
+
+def create_key(widget, key_row, key_col):
+    # Define constants and initialize variables
+    global colors_codes
+    key_width, key_height = 150, 70
+    row, col = 0, 0
+
+    # Setup group box with grid layout
+    groupBox = QGroupBox("Color Key", widget)
+    groupBox.move(round((key_col - 1) * col_spacing), round((key_row - 1) * row_spacing * 0.9))
+    groupBox.setFixedSize(key_width, key_height)
+    grid = QGridLayout()
+    groupBox.setLayout(grid)
+
+    # Populate grid with color code labels
+    for description, color in colors_codes.items():
+        label = QLabel(description)
+        label.setStyleSheet(f"background-color: {color}; color: black; font-family: Helvetica; font-size: 10pt;")
+        label.setAlignment(Qt.AlignCenter)
+        grid.addWidget(label, row, col)
+        col = (col + 1) % 2
+        if col == 0:
+            row += 1
+
+    groupBox.show()
 
 
 def echo_content(content):
@@ -513,9 +550,9 @@ def get_file_name(path):
     return os.path.basename(path)
 
 
-def strip_ext(fname):
+def strip_ext(filename):
     """Strip the extension from the file name"""
-    return os.path.splitext(fname)[0]
+    return os.path.splitext(filename)[0]
 
 
 def get_file_type(path):
@@ -524,12 +561,10 @@ def get_file_type(path):
 
 
 def get_input():
-    """Retrieve the text from the input box."""
+    """Attempt to retrieve the text, return False if not defined"""
     try:
-        # Retrieve and return the global input_text variable
         return str(input_text)
     except NameError:
-        # Return False if input_text is not defined
         return False
 
 
@@ -544,48 +579,47 @@ if __name__ == "__main__":
     spacing = 20
     row_spacing = btn_height + spacing
     col_spacing = btn_width + spacing
+    colors_codes = {"PDF": "#ffaaaa", "Image": "#aaffaa", "Any": "#aaaaff", "Settings": "#aaaaaa"}
 
     # Resize widget
     widget.resize(5 * col_spacing - spacing, 5 * row_spacing - spacing)
 
-    # Create buttons
-    # Row 1
-    create_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER))
-    create_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER))
-    create_button("Encrypt PDF", 1, 3, lambda: encrypt_pdf(PATH_TO_FOLDER))
-    create_button("Save Page Range", 1, 4, lambda: save_page_range(PATH_TO_FOLDER, 0, 0))
-    create_button("Resave Files", 1, 5, lambda: resave_files(PATH_TO_FOLDER))
+    # PDF Operations
+    create_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER), "PDF")
+    create_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER), "PDF")
+    create_button("Encrypt PDF", 1, 3, lambda: encrypt_pdf(PATH_TO_FOLDER), "PDF")
+    create_button("Save Page Range", 1, 4, lambda: save_page_range(PATH_TO_FOLDER, 0, 0), "PDF")
+    create_button("Enhance Contrast", 2, 2, lambda: enhance_contrast(PATH_TO_FOLDER), "PDF")
+    create_button("PDF to Image", 2, 1, lambda: pdf_to_image(PATH_TO_FOLDER), "PDF")
 
-    # Row 2
-    create_button("PDF to Image", 2, 1, lambda: pdf_to_image(PATH_TO_FOLDER))
-    create_button("Image to PDF", 2, 2, lambda: image_to_pdf(PATH_TO_FOLDER))
-    create_button("Sanitize", 2, 5, lambda: sanitize(PATH_TO_FOLDER))
+    # Image Operations
+    create_button("Image to PDF", 4, 1, lambda: image_to_pdf(PATH_TO_FOLDER), "Image")
+    create_button("Crop Images", 3, 1, lambda: crop_images(PATH_TO_FOLDER), "Image")
+    create_button("Merge Images", 3, 2, lambda: merge_images(PATH_TO_FOLDER), "Image")
+    create_button("Convert Images", 3, 3, lambda: convert_images(PATH_TO_FOLDER), "Image")
+    create_button("Image to ICO", 3, 4, lambda: img_to_ico(PATH_TO_FOLDER), "Image")
+    create_button("Get Image Colors", 4, 2, lambda: get_image_colors(PATH_TO_FOLDER), "Image")
+    create_button("Crop by 90%", 4, 3, lambda: crop_by_90(PATH_TO_FOLDER), "Image")
 
-    # Row 3
-    create_button("Crop Images", 3, 1, lambda: crop_images(PATH_TO_FOLDER))
-    create_button("Merge Images", 3, 2, lambda: merge_images(PATH_TO_FOLDER))
-    create_button("Convert Images", 3, 3, lambda: convert_images(PATH_TO_FOLDER))
-    create_button("Image to ICO", 3, 4, lambda: img_to_ico(PATH_TO_FOLDER))
-    create_button("Print Metadata", 3, 5, lambda: print_metadata(PATH_TO_FOLDER))
+    # General File Operations
+    create_button("Resave Files", 1, 5, lambda: resave_files(PATH_TO_FOLDER), "Any")
+    create_button("Sanitize", 2, 5, lambda: sanitize(PATH_TO_FOLDER), "Any")
+    create_button("Print Metadata", 3, 5, lambda: print_metadata(PATH_TO_FOLDER), "Any")
+    create_button("Rename Files", 4, 5, lambda: rename_files(PATH_TO_FOLDER), "Any")
+    create_button("Duplicate Detector", 5, 5, lambda: duplicate_detector(PATH_TO_FOLDER), "Any")
 
-    # Row 4
-    create_button("Duplicate Detector", 4, 1, lambda: duplicate_detector(PATH_TO_FOLDER))
-    create_button("Get Image Colors", 4, 2, lambda: get_image_colors(PATH_TO_FOLDER))
-    create_button("Crop by 90%", 4, 3, lambda: crop_by_90(PATH_TO_FOLDER))
-    create_button("Enhance Contrast", 4, 4, lambda: enhance_contrast(PATH_TO_FOLDER))
-
-    # Row 5
-    create_button("Restart", 5, 1, restart_program)
-    create_button("Quit", 5, 2, quit)
+    # Program Controls
+    create_button("Restart", 5, 1, restart_program, "settings")
+    create_button("Quit", 5, 2, quit, "settings")
+    create_key(widget, 5, 3.5)
 
     # Setup input box and layout
     input_box(row_spacing, col_spacing, btn_width, btn_height, spacing)
     layout = QVBoxLayout(widget)
-    label = QLabel("Program Idle")
+    statusField = QTextEdit("Program Idle")
     spacer = QSpacerItem(10, 5 * row_spacing, QSizePolicy.Minimum, QSizePolicy.Fixed)
     layout.addSpacerItem(spacer)
-    layout.addWidget(label)
-    label.move(0, 500)
+    layout.addWidget(statusField)
 
     # Show widget and execute application
     widget.show()

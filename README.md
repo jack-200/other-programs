@@ -4,32 +4,44 @@ This is a collection of standalone programs that offer tools for file management
 
 # [PDF and Image Tools](GUI-Applications/pdf_and_image_tools.pyw)
 
-![image](https://github.com/jack-200/other-programs/assets/86848773/51f71f89-5644-4c4c-b7d4-956c193e49ac)
+![image](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
 
 This program comes with a GUI and buttons connecting to various PDF and image functions. The constant variable
 PATH_TO_FOLDER must be changed to the desired directory. The constant variable POPPLER_PATH must be changed to
 the ```bin``` folder of poppler. Instructions to install poppler can be found in the README
 here: https://github.com/Belval/pdf2image
 
+### PDF Operations
+
 * **Merge PDFs**: Combines all PDFs in the directory into one PDF file.
 * **Stitch PDFs**: Stitches all PDF pages into one, creating vertical and horizontal versions.
 * **Encrypt PDF**: Encrypts PDFs in the directory with the user-provided key.
 * **Save Page Range**: Saves a range of pages from each PDF file. Formats: '9-99' for pages 9 to 99, '-99' for 1 to
   99, '99-' for 99 onwards, '99' for page 99 only.
-* **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
+* **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
 * **PDF To Image**: Converts PDF pages to individual PNG files.
+
+### Image Operations
+
 * **Image To PDF**: Converts PNG and JPG files to individual PDFs.
-* **Sanitize**: Strips metadata and sets a generic file name.
 * **Crop Images**: Crops images based on predefined dimensions.
 * **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and
   vertically merged PNG and JPG formats.
 * **Convert Images**: Converts existing image files to a duplicate PNG or JPG format.
 * **Img To Ico**: Converts image files to ICO format
-* **Print Metadata**: Prints out the metadata for all image and PDF files.
-* **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
 * **Get Image Colors**: Get the average color and most common colors of all images in the directory.
 * **Crop By 90**: Crops images by 90% of their dimensions, removing the outer parts of the image.
-* **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
+
+### General File Operations
+
+* **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
+* **Sanitize**: Strips metadata and sets a generic file name.
+* **Print Metadata**: Prints out the metadata for all image and PDF files.
+* **Rename Files**: Rename all files in a directory with a specified base name and sequential numbering.
+* **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
+
+### Settings
+
 * **Restart Program**: Restarts the program to apply code changes and detach from file usage.
 * **Quit**: Handle quit button click event.
 * Files are processed in alphabetical order
@@ -92,7 +104,8 @@ A tool for filtering files in a directory with the following functionalities:
 
 ![image](https://github.com/jack-200/other-programs/assets/86848773/43e68edb-0c8f-4773-a053-147f9e04e3c2)
 
-This PowerShell script generates a battery report, a system information report, and a DirectX Diagnostic report, saves them in the user's Downloads folder with the current date in the filename.
+This PowerShell script generates a battery report, a system information report, and a DirectX Diagnostic report, saves
+them in the user's Downloads folder with the current date in the filename.
 
 * **Enable PowerShell scripts:** Use `Set-ExecutionPolicy RemoteSigned`. Note the potential security risks.
 

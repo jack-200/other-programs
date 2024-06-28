@@ -32,19 +32,32 @@ function PrintBatteryCapacity {
 # Get today's date in the format YYYY-MM-DD
 $currentDate = (Get-Date).ToString("yyyy-MM-dd")
 
-# Generate the battery and system information report with the date in the filename
-$batteryReportPath = Join-Path $env:userprofile "Downloads\battery-report-$currentDate.html"
+$reportsFolderPath = Join-Path $env:userprofile "Downloads\Reports-$currentDate"
+
+if (-not (Test-Path $reportsFolderPath)) {
+    New-Item -ItemType Directory -Path $reportsFolderPath
+}
+
+# Generate a battery report
+$batteryReportPath = Join-Path $reportsFolderPath "battery-report-$currentDate.html"
 powercfg /batteryreport /output $batteryReportPath
-Write-Host "Battery report generated: $batteryReportPath"
+Write-Host "Battery report generated to $batteryReportPath"
 PrintBatteryCapacity -FilePath $batteryReportPath
 
-$systemInfoPath = Join-Path $env:userprofile "Downloads\system-info-$currentDate.nfo"
+# Generate a system information report
+$systemInfoPath = Join-Path $reportsFolderPath "system-info-$currentDate.nfo"
 msinfo32 /nfo "$systemInfoPath"
 Wait-Process -Name msinfo32
-Write-Host "System information saved: $systemInfoPath`n"
+Write-Host "System information saved to $systemInfoPath`n"
 
-$dxdiagPath = Join-Path $env:userprofile "Downloads\DxDiag-$currentDate.txt"
+# Generate a DxDiag report
+$dxdiagPath = Join-Path $reportsFolderPath "DxDiag-$currentDate.txt"
 Start-Process -FilePath "dxdiag.exe" -ArgumentList "/t $dxdiagPath" -NoNewWindow -Wait
-Write-Host "DxDiag information saved to $dxdiagPath`n"
+Write-Host "DxDiag report saved to $dxdiagPath`n"
+
+# Generate a detailed driver information report
+$driverInfoPath = Join-Path $reportsFolderPath "driver-info-$currentDate.csv"
+driverquery /v /fo csv > $driverInfoPath
+Write-Host "Detailed driver information saved to $driverInfoPath`n"
 
 Pause

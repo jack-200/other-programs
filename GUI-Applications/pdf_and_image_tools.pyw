@@ -4,6 +4,7 @@ import io
 import os
 import sys
 
+import cairosvg
 import img2pdf
 import numpy
 import numpy as np
@@ -22,27 +23,24 @@ POPPLER_PATH = r""
 def merge_pdfs(dir_path):
     """Combines all PDFs in the directory into one PDF file."""
 
-    # Initialize merger and get all PDF files in the directory
+    # Get all PDF files, and append them to the merger
     merger = pypdf.PdfMerger()
     pdf_files = index_directory(dir_path, "pdf")
-
-    # Append PDF files to merger
     for pdf_file in pdf_files:
         merger.append(pdf_file)
 
-    # Define result file name, write the merged PDFs to it, and close the merger
-    result_pdf = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
-    merger.write(result_pdf)
+    # Define result file name, write the merged PDFs to it, close the merger, and update status
+    result_pdf_path = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
+    merger.write(result_pdf_path)
     merger.close()
+    statusField.setText(f"\nMerge PDF Result: {result_pdf_path}")
 
-    statusField.setText(f"\nMerge PDF Result: {result_pdf}")
 
-
-def stitch_pdfs(path):
+def stitch_pdfs(dir_path):
     """Stitches all PDF pages into one, creating vertical and horizontal versions."""
 
     # Iterate over all PDF files in the directory
-    for file_name in index_directory(path, "pdf"):
+    for file_name in index_directory(dir_path, "pdf"):
         pdf_file = pypdf.PdfReader(open(file_name, "rb"))
 
         # Skip files with less than two pages
@@ -89,24 +87,20 @@ def stitch_pdfs(path):
 def encrypt_pdf(dir_path):
     """Encrypts PDFs in the directory with the user-provided key."""
 
-    # Retrieve encryption key
-    key = get_input()
-    if not key: return
+    # Retrieve encryption key and validate
+    encryption_key = get_input()
+    if not encryption_key: return
 
-    # Iterate over PDF files in the directory
-    for file_path in index_directory(dir_path, "pdf"):
-        # Read the PDF file
-        with open(file_path, "rb") as in_file:
-            reader = pypdf.PdfReader(in_file)
+    # Process each PDF file in the directory
+    for pdf_path in index_directory(dir_path, "pdf"):
+        # Read and encrypt the PDF, then write to a new file
+        with open(pdf_path, "rb") as pdf_file, pypdf.PdfReader(pdf_file) as reader:
+            writer = pypdf.PdfWriter()
+            writer.append_pages_from_reader(reader)
+            writer.encrypt(user_password=encryption_key)
 
-        # Create a new PDF writer, append pages from the reader, and encrypt
-        writer = pypdf.PdfWriter()
-        writer.append_pages_from_reader(reader)
-        writer.encrypt(user_password=key)
-
-        # Write the encrypted PDF to a new file
-        with open(f"{strip_ext(file_path)}_encrypted.pdf", "wb") as out_file:
-            writer.write(out_file)
+            with open(f"{strip_ext(pdf_path)}_encrypted.pdf", "wb") as encrypted_pdf:
+                writer.write(encrypted_pdf)
 
 
 def save_page_range(path, start_page, end_page):
@@ -278,15 +272,15 @@ def merge_images(path):
     Image.fromarray(h_imgs_comb).convert("RGB").save(f"{path}\\!horizontal.jpg")
 
 
-def convert_images(path):
+def convert_between_png_jpg(directory):
     """Converts existing image files to a duplicate PNG or JPG format."""
-    file_paths = index_directory(path, file_types=["png", "jpg"])
-    for file_path in file_paths:
-        file_type = file_path.split(".")[-1].lower()
-        if "png" == file_type:
-            Image.open(file_path).convert("RGB").save(f"{file_path[:-4]}.jpg")
-        elif "jpg" == file_type:
-            Image.open(file_path).save(f"{file_path[:-4]}.png")
+    for image_path in get_all_images(directory):
+        file_type = get_file_type(image_path)
+        new_file_path = strip_ext(image_path)
+        if file_type == "png":
+            Image.open(image_path).convert("RGB").save(f"{new_file_path}.jpg")
+        else:
+            Image.open(image_path).save(f"{new_file_path}.png")
 
 
 def img_to_ico(path):
@@ -296,36 +290,40 @@ def img_to_ico(path):
         img.save(f"{strip_ext(file_path)}.ico")
 
 
-def print_metadata(path):
-    """Prints out the metadata for all image and PDF files."""
-    metadata_output = ""
-    file_paths = index_directory(path, file_types=["jpeg", "jpg", "pdf", "png"])
+def print_info(directory):
+    """Prints out the size and metadata for all image and PDF files."""
+    output = ""
+    files = index_directory(directory, file_types=["jpeg", "jpg", "pdf", "png"])
 
-    for index, file_path in enumerate(file_paths):
-        metadata_output += echo_content(f"\n{index + 1}. {file_path}\n")
+    for index, path in enumerate(files):
+        size = os.path.getsize(path)
+        formatted_size = "{:,}".format(size)
 
-        if file_path.endswith((".png", ".jpg", ".jpeg")):
-            img = Image.open(file_path)
-            metadata_output += echo_content(
-                f"\tWidth, Height, Size, Mode = ({img.width}, {img.height}) {img.format} {img.mode}\n")
-            exif_data = img.getexif()
+        # Determine file size in bytes, KB, or MB
+        if size < 1024 * 1024:  # Less than 1 MB
+            size_str = f"{formatted_size} bytes ({size / 1024:.2f} KB)"
+        else:
+            size_str = f"{formatted_size} bytes ({size / (1024 * 1024):.2f} MB)"
 
-            for tag_id in exif_data:
-                tag_name = str(ExifTags.TAGS.get(tag_id, tag_id))
-                spaces = 25 - len(tag_name)
-                metadata_output += echo_content(f"\t{tag_name + ' ' * spaces}: {exif_data.get(tag_id)}\n")
+        output += f"\n{index + 1}. {path}\n\tFile Size: {size_str}"
 
-        elif file_path.endswith(".pdf"):
-            with open(file_path, "rb") as f:
-                pdf_reader = pypdf.PdfReader(f)
-                metadata = pdf_reader.metadata
-                if metadata:
-                    for metadata_key in metadata:
-                        metadata_output += echo_content(f"{metadata_key}: {metadata[metadata_key]}\n")
-                else:
-                    metadata_output += echo_content("No Metadata\n")
+        # Handle image files: get size, mode, format, and EXIF data
+        if path.endswith((".png", ".jpg", ".jpeg")):
+            img = Image.open(path)
+            output += f"\tWidth, Height, Mode = ({img.width}, {img.height}, {img.mode}) {img.format}\n"
+            for tag_id, value in img.getexif().items():
+                tag = str(ExifTags.TAGS.get(tag_id, tag_id))
+                output += f"\t{tag.ljust(25)}: {value}\n"
 
-    statusField.setText(metadata_output.lstrip('\n'))
+        # Handle PDF files: get and output metadata
+        elif path.endswith(".pdf"):
+            with open(path, "rb") as f:
+                pdf = pypdf.PdfReader(f)
+                metadata = pdf.metadata or {"No Metadata": None}
+                for key, value in metadata.items():
+                    output += f"\t{key}: {value}\n"
+
+    statusField.setText(output.lstrip('\n'))
 
 
 def duplicate_detector(directory_path):
@@ -361,7 +359,10 @@ def get_image_colors(directory_path):
     # Open image and get colors
     for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
         img = Image.open(full_file_path)
-        colors = [pixel[:3] for pixel in img.getdata() if pixel[3] == 255]
+        if img.mode == 'RGBA':
+            colors = [pixel[:3] for pixel in img.getdata() if pixel[3] == 255]
+        else:
+            colors = [pixel[:3] for pixel in img.getdata()]
 
         # Calculate average color and convert to hex
         avg_color = np.mean(colors, axis=0)
@@ -395,6 +396,18 @@ def crop_by_90(directory_path):
         bottom = (height + new_height) / 2
         img_cropped = img.crop((left, top, right, bottom))
         img_cropped.save(f"{strip_ext(full_file_path)} !CROPPED 90.{get_file_type(full_file_path)}")
+
+
+def convert_to_png(directory_path):
+    """Converts SVG and WEBP files to PNG format."""
+    for full_file_path in index_directory(directory_path, file_types=["svg", "webp"]):
+        output_path = f"{strip_ext(full_file_path)}.png"
+
+        if full_file_path.endswith('.svg'):
+            cairosvg.svg2png(url=full_file_path, write_to=output_path)
+        elif full_file_path.endswith('.webp'):
+            img = Image.open(full_file_path)
+            img.save(output_path, "PNG")
 
 
 def enhance_contrast(dir_path):
@@ -450,32 +463,40 @@ def restart_program():
 
 def quit():
     """Handle quit button click event."""
+    confirmation_dialog = QMessageBox()
+    confirmation_dialog.setWindowTitle("Quit")
+    confirmation_dialog.setText("Are you sure you want to quit?")
+    confirmation_dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+    confirmation_dialog.setDefaultButton(QMessageBox.No)
 
-    # Create and configure quit confirmation dialog
-    box = QMessageBox()
-    box.setWindowTitle("Quit")
-    box.setText("Are you sure you want to quit?")
-    box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    box.setDefaultButton(QMessageBox.No)
-
-    # Execute dialog and handle response
-    if box.exec_() == QMessageBox.Yes:
+    if confirmation_dialog.exec_() == QMessageBox.Yes:
         sys.exit()
 
 
-def index_directory(path, file_types):
-    """Get the list of file names in the target directory"""
-    if type(file_types) == list:  # convert file_types into a list
-        file_types = [f".{i.lower()}" for i in file_types]
+def index_directory(path, file_types=None):
+    """Get the list of file names in the target directory. Defaults to all file types if none specified."""
+    if file_types is None or file_types == '*':  # No filtering by file type
+        file_types_filter = False
     else:
-        file_types = [f".{file_types}"]
+        if type(file_types) == list:  # convert file_types into a list
+            file_types = [f".{i.lower()}" for i in file_types]
+        else:
+            file_types = [f".{file_types.lower()}"]
+        file_types_filter = True
+
     file_paths = []
     for subdir, dirs, files in os.walk(path):
         for file in files:
-            file_type = f".{file.split('.')[-1].lower()}"
-            if file_type in file_types:  # filter by file type
-                file_paths.append(f"{subdir}\\{file}")
-    print(f"\n{path}: {len(file_paths)} file(s) with file type {file_types}")  # print out the file names found
+            if file_types_filter:
+                file_type = f".{file.split('.')[-1].lower()}"
+                if file_type in file_types:  # filter by file type
+                    file_paths.append(f"{subdir}\\{file}")
+            else:
+                file_paths.append(f"{subdir}\\{file}")  # Add all files if no file type filtering
+
+    print(f"\n{path}: {len(file_paths)} file(s)")
+    if file_types_filter:
+        print(f"Filtered by file type {file_types}")
     for count, file_name in enumerate(file_paths):
         print(f"{count + 1}. {file_name}")
     return file_paths
@@ -572,7 +593,7 @@ if __name__ == "__main__":
     # Setup application and widget
     app = QApplication(sys.argv)
     widget = QWidget()
-    widget.setWindowTitle("PDF and Image Tool")
+    widget.setWindowTitle("PDF and Image Tools")
 
     # Define button and spacing dimensions
     btn_width, btn_height = 120, 30
@@ -582,29 +603,30 @@ if __name__ == "__main__":
     colors_codes = {"PDF": "#ffaaaa", "Image": "#aaffaa", "Any": "#aaaaff", "Settings": "#aaaaaa"}
 
     # Resize widget
-    widget.resize(5 * col_spacing - spacing, 5 * row_spacing - spacing)
+    widget.resize(5 * col_spacing - spacing, 8 * row_spacing - spacing)
 
     # PDF Operations
     create_button("Merge PDFs", 1, 1, lambda: merge_pdfs(PATH_TO_FOLDER), "PDF")
     create_button("Stitch PDFs", 1, 2, lambda: stitch_pdfs(PATH_TO_FOLDER), "PDF")
     create_button("Encrypt PDF", 1, 3, lambda: encrypt_pdf(PATH_TO_FOLDER), "PDF")
     create_button("Save Page Range", 1, 4, lambda: save_page_range(PATH_TO_FOLDER, 0, 0), "PDF")
-    create_button("Enhance Contrast", 2, 2, lambda: enhance_contrast(PATH_TO_FOLDER), "PDF")
     create_button("PDF to Image", 2, 1, lambda: pdf_to_image(PATH_TO_FOLDER), "PDF")
+    create_button("Enhance Contrast", 2, 2, lambda: enhance_contrast(PATH_TO_FOLDER), "PDF")
 
     # Image Operations
-    create_button("Image to PDF", 4, 1, lambda: image_to_pdf(PATH_TO_FOLDER), "Image")
     create_button("Crop Images", 3, 1, lambda: crop_images(PATH_TO_FOLDER), "Image")
     create_button("Merge Images", 3, 2, lambda: merge_images(PATH_TO_FOLDER), "Image")
-    create_button("Convert Images", 3, 3, lambda: convert_images(PATH_TO_FOLDER), "Image")
+    create_button("Convert PNG ↔️ JPG", 3, 3, lambda: convert_between_png_jpg(PATH_TO_FOLDER), "Image")
     create_button("Image to ICO", 3, 4, lambda: img_to_ico(PATH_TO_FOLDER), "Image")
+    create_button("Image to PDF", 4, 1, lambda: image_to_pdf(PATH_TO_FOLDER), "Image")
     create_button("Get Image Colors", 4, 2, lambda: get_image_colors(PATH_TO_FOLDER), "Image")
     create_button("Crop by 90%", 4, 3, lambda: crop_by_90(PATH_TO_FOLDER), "Image")
+    create_button("SVG WEBP to PNG", 4, 4, lambda: convert_to_png(PATH_TO_FOLDER), "Image")
 
     # General File Operations
     create_button("Resave Files", 1, 5, lambda: resave_files(PATH_TO_FOLDER), "Any")
     create_button("Sanitize", 2, 5, lambda: sanitize(PATH_TO_FOLDER), "Any")
-    create_button("Print Metadata", 3, 5, lambda: print_metadata(PATH_TO_FOLDER), "Any")
+    create_button("Print Info", 3, 5, lambda: print_info(PATH_TO_FOLDER), "Any")
     create_button("Rename Files", 4, 5, lambda: rename_files(PATH_TO_FOLDER), "Any")
     create_button("Duplicate Detector", 5, 5, lambda: duplicate_detector(PATH_TO_FOLDER), "Any")
 

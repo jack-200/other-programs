@@ -20,6 +20,20 @@ PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
 
 
+def ensure_folder(source_path):
+    # Set the default path to the Downloads/PDF-IMG folder if not specified
+    if source_path == "":
+        source_path = os.path.join(os.path.expanduser("~"), "Downloads", "PDF-IMG")
+        print(f"Path to folder not specified. Using default path: {source_path}")
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(source_path):
+        os.makedirs(source_path)
+        print(f"Folder created at: {source_path}")
+
+    return source_path
+
+
 def merge_pdfs(dir_path):
     """Combines all PDFs in the directory into one PDF file."""
 
@@ -140,7 +154,6 @@ def save_page_range(path, start_page, end_page):
 
 def resave_files(path, sanitize=False):
     """Resave PDFs and images, stripping metadata and potentially reducing size."""
-    # NOTE: To remove all PDF metadata, comment out the "NameObject("/Producer"):" line in pypdf\_writer.py
     results = ""
     for file_path in index_directory(path, ["jpeg", "jpg", "pdf", "png"]):
         org_size = os.path.getsize(file_path) / 1024
@@ -155,7 +168,11 @@ def resave_files(path, sanitize=False):
             os.chmod(file_path, 0o777)
             os.remove(file_path)
             if sanitize:
-                file_path = get_folder_path(file_path) + r"\document.pdf"
+                file_path = os.path.join(get_folder_path(file_path), "document.pdf")
+
+            # Clear the metadata
+            writer._info = pypdf.generic.DictionaryObject()
+
             with open(file_path, "wb") as pdf:
                 writer.write(pdf)
         else:
@@ -319,7 +336,7 @@ def print_info(directory):
         elif path.endswith(".pdf"):
             with open(path, "rb") as f:
                 pdf = pypdf.PdfReader(f)
-                metadata = pdf.metadata or {"No Metadata": None}
+                metadata = pdf.metadata or {}
                 for key, value in metadata.items():
                     output += f"\t{key}: {value}\n"
 
@@ -490,9 +507,9 @@ def index_directory(path, file_types=None):
             if file_types_filter:
                 file_type = f".{file.split('.')[-1].lower()}"
                 if file_type in file_types:  # filter by file type
-                    file_paths.append(f"{subdir}\\{file}")
+                    file_paths.append(os.path.join(subdir, file))
             else:
-                file_paths.append(f"{subdir}\\{file}")  # Add all files if no file type filtering
+                file_paths.append(os.path.join(subdir, file))  # Add all files if no file type filtering
 
     print(f"\n{path}: {len(file_paths)} file(s)")
     if file_types_filter:
@@ -594,6 +611,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = QWidget()
     widget.setWindowTitle("PDF and Image Tools")
+
+    PATH_TO_FOLDER = ensure_folder(PATH_TO_FOLDER)
 
     # Define button and spacing dimensions
     btn_width, btn_height = 120, 30

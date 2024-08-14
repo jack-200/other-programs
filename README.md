@@ -6,10 +6,7 @@ This is a collection of standalone programs that offer tools for file management
 
 ![image](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
 
-This program comes with a GUI and buttons connecting to various PDF and image functions. The constant variable
-PATH_TO_FOLDER must be changed to the desired directory. The constant variable POPPLER_PATH must be changed to
-the ```bin``` folder of poppler. Instructions to install poppler can be found in the README
-here: https://github.com/Belval/pdf2image
+This program comes with a GUI and buttons connecting to various PDF and image functions.
 
 ### PDF Operations
 
@@ -45,6 +42,24 @@ here: https://github.com/Belval/pdf2image
 * **Restart Program**: Restarts the program to apply code changes and detach from file usage.
 * **Quit**: Handle quit button click event.
 * Files are processed in alphabetical order
+
+### Setup
+
+The variable PATH_TO_FOLDER points to the source directory. It defaults to the Downloads/PDF-IMG folder.
+
+The variable POPPLER_PATH must be changed to the ```bin``` folder of poppler. Instructions to install poppler can be
+found in the README here: https://github.com/Belval/pdf2image
+
+```bash
+# Install & create virtual environment
+sudo apt-get install python3-venv && python3 -m venv venv
+
+# Activate virtual environment & install dependencies
+source venv/bin/activate && pip install cairosvg img2pdf numpy pypdf pillow pyqt5 pdf2image
+
+# Run the program
+python GUI-Applications/pdf_and_image_tools.pyw 
+```
 
 <br><br>
 

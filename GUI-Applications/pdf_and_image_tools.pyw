@@ -7,10 +7,8 @@ import sys
 import cairosvg
 import img2pdf
 import numpy
-import numpy as np
 import pypdf
-from PIL import ExifTags, Image
-from PIL import ImageEnhance
+from PIL import ExifTags, Image, ImageEnhance
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
                              QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout)
@@ -382,7 +380,7 @@ def get_image_colors(directory_path):
             colors = [pixel[:3] for pixel in img.getdata()]
 
         # Calculate average color and convert to hex
-        avg_color = np.mean(colors, axis=0)
+        avg_color = numpy.mean(colors, axis=0)
         avg_color_hex = "#%02x%02x%02x" % (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
 
         # Get most common colors and convert to hex

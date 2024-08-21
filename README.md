@@ -51,14 +51,14 @@ The variable POPPLER_PATH must be changed to the ```bin``` folder of poppler. In
 found in the README here: https://github.com/Belval/pdf2image
 
 ```bash
-# Install & create virtual environment
+# Install & Create virtual environment
 sudo apt-get install python3-venv && python3 -m venv venv
 
-# Activate virtual environment & install dependencies
-source venv/bin/activate && pip install cairosvg img2pdf numpy pypdf pillow pyqt5 pdf2image
+# Activate virtual environment & Install dependencies
+source venv/bin/activate && sudo apt-get install python3-tk && python -m pip install -r requirements.txt
 
-# Run the program
-python GUI-Applications/pdf_and_image_tools.pyw 
+# Run a script
+python GUI-Applications/pdf_and_image_tools.pyw
 ```
 
 <br><br>

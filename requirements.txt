@@ -1,0 +1,12 @@
+beautifulsoup4
+cairosvg
+img2pdf
+numpy
+pdf2image
+pdfkit
+Pillow
+pypdf
+pyperclip
+PyQt5
+pytube
+Requests

@@ -9,4 +9,5 @@ pypdf
 pyperclip
 PyQt5
 pytube
+pywin32
 Requests

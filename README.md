@@ -52,13 +52,13 @@ found in the README here: https://github.com/Belval/pdf2image
 
 ```bash
 # Install & Create virtual environment
-sudo apt-get install python3-venv && python3 -m venv venv
+python -m venv venv
 
 # Activate virtual environment & Install dependencies
-source venv/bin/activate && sudo apt-get install python3-tk && python -m pip install -r requirements.txt
+venv\Scripts\activate && python -m pip install -r requirements.txt
 
 # Run a script
-python GUI-Applications/pdf_and_image_tools.pyw
+python GUI-Applications\pdf_and_image_tools.pyw
 ```
 
 <br><br>

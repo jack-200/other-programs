@@ -4,7 +4,11 @@ import io
 import os
 import sys
 
-import cairosvg
+try:
+    import cairosvg
+except OSError:
+    is_cairosvg_installed = False
+
 import img2pdf
 import numpy
 import pypdf
@@ -413,8 +417,12 @@ def crop_by_90(directory_path):
         img_cropped.save(f"{strip_ext(full_file_path)} !CROPPED 90.{get_file_type(full_file_path)}")
 
 
-def convert_to_png(directory_path):
+def convert_svg_and_webp_to_png(directory_path):
     """Converts SVG and WEBP files to PNG format."""
+    if not is_cairosvg_installed:
+        print("CairoSVG is not installed. Unable to convert SVG files to PNG.")
+        return
+
     for full_file_path in index_directory(directory_path, file_types=["svg", "webp"]):
         output_path = f"{strip_ext(full_file_path)}.png"
 
@@ -638,7 +646,7 @@ if __name__ == "__main__":
     create_button("Image to PDF", 4, 1, lambda: image_to_pdf(PATH_TO_FOLDER), "Image")
     create_button("Get Image Colors", 4, 2, lambda: get_image_colors(PATH_TO_FOLDER), "Image")
     create_button("Crop by 90%", 4, 3, lambda: crop_by_90(PATH_TO_FOLDER), "Image")
-    create_button("SVG WEBP to PNG", 4, 4, lambda: convert_to_png(PATH_TO_FOLDER), "Image")
+    create_button("SVG WEBP to PNG", 4, 4, lambda: convert_svg_and_webp_to_png(PATH_TO_FOLDER), "Image")
 
     # General File Operations
     create_button("Resave Files", 1, 5, lambda: resave_files(PATH_TO_FOLDER), "Any")

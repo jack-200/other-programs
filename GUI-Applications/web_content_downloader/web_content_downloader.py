@@ -1,12 +1,11 @@
 import json
 import os
-import subprocess
-import tkinter as tk
-
 import pdfkit
 import pyperclip
 import pytube
 import requests
+import subprocess
+import tkinter as tk
 from bs4 import BeautifulSoup
 
 
@@ -63,10 +62,10 @@ def get_video_info(url):
     yt = pytube.YouTube(url=url)
     info = yt.vid_info
     status = info["playabilityStatus"]["status"]
-    # json.dump(info, open(f"{DIR}/latest_video_info.json", "w"), indent=4)
+    # json.dump(info, open(f"{DIR}/latest_video_info.json", "w"), indent=4) # debugging: save video info to file
 
     # Check video status
-    if status != "PASS":
+    if status not in ["PASS", "OK"]:
         return status
 
     # Print video details

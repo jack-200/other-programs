@@ -6,7 +6,8 @@ import sys
 
 try:
     import cairosvg
-except OSError:
+except OSError as e:
+    print(f"Error: {e}. CairoSVG is not installed. SVG files will not be converted to PNG.")
     is_cairosvg_installed = False
 
 import img2pdf
@@ -419,18 +420,19 @@ def crop_by_90(directory_path):
 
 def convert_svg_and_webp_to_png(directory_path):
     """Converts SVG and WEBP files to PNG format."""
-    if not is_cairosvg_installed:
-        print("CairoSVG is not installed. Unable to convert SVG files to PNG.")
-        return
-
     for full_file_path in index_directory(directory_path, file_types=["svg", "webp"]):
         output_path = f"{strip_ext(full_file_path)}.png"
 
         if full_file_path.endswith('.svg'):
+            if not is_cairosvg_installed:
+                print("CairoSVG is not installed. Unable to convert SVG files to PNG.")
+                continue
             cairosvg.svg2png(url=full_file_path, write_to=output_path)
+            print(f"Converted {full_file_path} from SVG to PNG.")
         elif full_file_path.endswith('.webp'):
             img = Image.open(full_file_path)
             img.save(output_path, "PNG")
+            print(f"Converted {full_file_path} from WEBP to PNG.")
 
 
 def enhance_contrast(dir_path):

@@ -55,7 +55,7 @@ found in the README here: https://github.com/Belval/pdf2image
 python -m venv venv
 
 # Activate virtual environment & Install dependencies
-venv\Scripts\activate && python -m pip install -r requirements.txt
+venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
 # Run a script
 python GUI-Applications\pdf_and_image_tools.pyw

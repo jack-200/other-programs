@@ -6,8 +6,8 @@ import sys
 
 try:
     import cairosvg
-except OSError as e:
-    print(f"Error: {e}. CairoSVG is not installed. SVG files will not be converted to PNG.")
+except (OSError, ModuleNotFoundError) as e:
+    print(f"Error: {e}. CairoSVG is not installed.\nSVG files will not be converted to PNG.")
     is_cairosvg_installed = False
 
 import img2pdf
@@ -24,12 +24,11 @@ POPPLER_PATH = r""
 
 
 def ensure_folder(source_path):
-    # Set the default path to the Downloads/PDF-IMG folder if not specified
+    # Set default path if not specified and create folder if it doesn't exist
     if source_path == "":
         source_path = os.path.join(os.path.expanduser("~"), "Downloads", "PDF-IMG")
         print(f"Path to folder not specified. Using default path: {source_path}")
 
-    # Create the folder if it doesn't exist
     if not os.path.exists(source_path):
         os.makedirs(source_path)
         print(f"Folder created at: {source_path}")

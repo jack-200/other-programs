@@ -58,7 +58,7 @@ python -m venv venv
 venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
 # Run a script
-python GUI-Applications\pdf_and_image_tools.pyw
+python content-tools\pdf_and_image_tools.pyw
 ```
 
 <br><br>

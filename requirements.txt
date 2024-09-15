@@ -1,6 +1,7 @@
 beautifulsoup4
 cairosvg
 cffi
+cryptography
 img2pdf
 numpy
 pdf2image

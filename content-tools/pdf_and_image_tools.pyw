@@ -6,22 +6,28 @@ import sys
 
 try:
     import cairosvg
-except (OSError, ModuleNotFoundError) as e:
-    print(f"Error: {e}. CairoSVG is not installed.\nSVG files will not be converted to PNG.")
+except (ModuleNotFoundError, OSError) as e:
+    print("Package CairoSVG is not installed. Cannot convert SVG files to PNG.")
     is_cairosvg_installed = False
 
-import img2pdf
+try:
+    import img2pdf
+except (ModuleNotFoundError) as e:
+    print("Package img2pdf is not installed. Cannot enhance contrast of PDFs.")
+    is_img2pdf_installed = False
+
 import numpy
 import pypdf
 from PIL import ExifTags, Image, ImageEnhance
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
-                             QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout)
+from PyQt5.QtWidgets import (
+    QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, 
+    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout
+)
 from pdf2image import convert_from_path
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
-
 
 def ensure_folder(source_path):
     # Set default path if not specified and create folder if it doesn't exist
@@ -424,7 +430,7 @@ def convert_svg_and_webp_to_png(directory_path):
 
         if full_file_path.endswith('.svg'):
             if not is_cairosvg_installed:
-                print("CairoSVG is not installed. Unable to convert SVG files to PNG.")
+                print("Package CairoSVG is not installed. Cannot convert SVG files to PNG.")
                 continue
             cairosvg.svg2png(url=full_file_path, write_to=output_path)
             print(f"Converted {full_file_path} from SVG to PNG.")
@@ -436,6 +442,9 @@ def convert_svg_and_webp_to_png(directory_path):
 
 def enhance_contrast(dir_path):
     """Enhance the contrast of a PDF by 25%."""
+    if not is_img2pdf_installed:
+        print("Package img2pdf is not installed. Cannot enhance contrast of PDFs.")
+        return
 
     # Get all PDF paths and initialize enhanced images list
     pdf_paths = index_directory(dir_path, "pdf")

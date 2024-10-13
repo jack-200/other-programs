@@ -57,6 +57,8 @@ python -m venv venv
 # Activate virtual environment & Install dependencies
 venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
+- Note: cairosvg and img2pdf require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
+
 # Run a script
 python content-tools\pdf_and_image_tools.pyw
 ```

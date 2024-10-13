@@ -1,18 +1,19 @@
-beautifulsoup4
-cairosvg
+pip
+setuptools
+wheel
 cffi
 cryptography
-img2pdf
+pywin32
+
+beautifulsoup4
+# cairosvg
+# img2pdf
 numpy
 pdf2image
 pdfkit
 Pillow
-pip
 pypdf
 pyperclip
 PyQt5
 pytube
-pywin32
 Requests
-setuptools
-wheel

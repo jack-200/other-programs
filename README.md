@@ -57,10 +57,11 @@ python -m venv venv
 # Activate virtual environment & Install dependencies
 venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
-- Note: cairosvg and img2pdf require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
+- cairosvg and img2pdf require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
+- PyQt5 requires the Desktop development with C++ workload from the Microsoft C++ Build Tools [https://visualstudio.microsoft.com/visual-cpp-build-tools/].
 
 # Run a script
-python content-tools\pdf_and_image_tools.pyw
+venv\Scripts\activate && python content-tools\pdf_and_image_tools.pyw
 ```
 
 <br><br>
@@ -75,16 +76,6 @@ Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
 * wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/.
 * Inputting a YouTube playlist will copy the all video links in that playlist to the clipboard.
 * Files are saved in same location as script.
-
-To run, the following packages must be installed:
-
-```
-python -m pip install --upgrade bs4
-python -m pip install --upgrade pdfkit
-python -m pip install --upgrade pyperclip
-python -m pip install --upgrade pytube
-python -m pip install --upgrade requests
-```
 
 <br><br>
 

@@ -146,16 +146,21 @@ def save_page_range(path, start_page, end_page):
         start_page = end_page = range_input[0]
 
     for file_path in index_directory(path, "pdf"):
-        if end_page == -1:
+        total_pages = len(pypdf.PdfReader(file_path).pages)
+        if int(start_page) > total_pages:
+            print(f"End page {end_page} is greater than the number of pages in the PDF {file_path}. Skipping.")
+            continue
+        if end_page == -1 or int(end_page) > total_pages:
             with open(file_path, "rb") as f:
                 end_page = pypdf.PdfReader(f)
                 end_page = len(end_page.pages)
+                print(f"End page set to {end_page} in the PDF {file_path}.")
         start_page = int(start_page)
         end_page = int(end_page)
         writer = pypdf.PdfWriter()
         reader = pypdf.PdfReader(file_path)
         for page in range(start_page - 1, end_page):
-            writer.add_page(reader.pages[page])
+                writer.add_page(reader.pages[page])
         with open(f"{path}\\{start_page}-{end_page} {get_file_name(file_path)}", "wb") as output_pdf:
             writer.write(output_pdf)
 

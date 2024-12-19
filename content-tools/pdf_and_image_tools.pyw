@@ -12,6 +12,7 @@ except (ModuleNotFoundError, OSError) as e:
 
 try:
     import img2pdf
+    is_img2pdf_installed = True
 except (ModuleNotFoundError) as e:
     print("Package img2pdf is not installed. Cannot enhance contrast of PDFs.")
     is_img2pdf_installed = False
@@ -28,6 +29,9 @@ from pdf2image import convert_from_path
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r""
+if not os.path.exists(POPPLER_PATH):
+    print("Poppler not found. Cannot convert PDF files to images.")
+    is_poppler_installed = False
 
 def ensure_folder(source_path):
     # Set default path if not specified and create folder if it doesn't exist
@@ -45,16 +49,19 @@ def ensure_folder(source_path):
 def merge_pdfs(dir_path):
     """Combines all PDFs in the directory into one PDF file."""
 
-    # Get all PDF files, and append them to the merger
-    merger = pypdf.PdfMerger()
+    # Get all PDF files, and append them to the writer
+    writer = pypdf.PdfWriter()
     pdf_files = index_directory(dir_path, "pdf")
     for pdf_file in pdf_files:
-        merger.append(pdf_file)
+        reader = pypdf.PdfReader(pdf_file)
+        for page in range(len(reader.pages)):
+            writer.add_page(reader.pages[page])
 
-    # Define result file name, write the merged PDFs to it, close the merger, and update status
+    # Define result file name, write the merged PDFs to it, and update status
     result_pdf_path = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
-    merger.write(result_pdf_path)
-    merger.close()
+    with open(result_pdf_path, "wb") as output_pdf:
+        writer.write(output_pdf)
+    
     statusField.setText(f"\nMerge PDF Result: {result_pdf_path}")
 
 
@@ -208,6 +215,9 @@ def resave_files(path, sanitize=False):
 
 def pdf_to_image(path):
     """Converts PDF pages to individual PNG files."""
+    if not is_poppler_installed:
+        print("Package Poppler is not installed. Cannot convert PDF files to images.")
+        return
     file_paths = index_directory(path, "pdf")
     for file in file_paths:
         pdf_pages = convert_from_path(file, dpi=300, poppler_path=POPPLER_PATH)
@@ -461,9 +471,9 @@ def enhance_contrast(dir_path):
         for image in convert_from_path(path, poppler_path=POPPLER_PATH):
             enhanced_image = ImageEnhance.Contrast(image).enhance(1.25)
 
-            # Save the enhanced image in JPEG format to a BytesIO object
+            # Save the enhanced image in PNG format to a BytesIO object
             byte_io = io.BytesIO()
-            enhanced_image.save(byte_io, format='JPEG')
+            enhanced_image.save(byte_io, format='PNG')
             enhanced_images.append(byte_io.getvalue())
 
         # Define output path, convert enhanced images back to PDF and save

@@ -24,6 +24,7 @@ def filter_paths_by_regex(paths: List[str], pattern: str) -> List[str]:
 def filter_by_filetype():
     result_field.delete('1.0', tk.END)
     paths = index_directory(source_path_input.get())
+    print(f"{filter_paths_by_filetype.__name__}(): {source_path_input.get()}")
     filtered_paths = filter_paths_by_filetype(paths, filetypes_input.get())
     result_field.insert(tk.END, "\n".join(filtered_paths))
     if copy_over_flag.get():
@@ -52,12 +53,17 @@ def copy_file_to_destination(file_names: List[str]) -> None:
     """Copies a file from source to destination if it doesn't exist in the destination."""
     global num_copied
     for file_name in file_names:
-        destination_file_path = os.path.join(destination_path_input.get(), os.path.basename(file_name))
+        destination_file_path = os.path.join(destination_path, os.path.basename(file_name))
+        print(f"Destination file path: {destination_file_path}")
+        print(f"Destination path: {destination_path}")
+        print(f"File name: {file_name}")
+        
         if not os.path.exists(destination_file_path):
-            shutil.copy(os.path.join(source_path_input.get(), file_name), destination_file_path)
+            print(f"Copying {source_file_path} to {destination_file_path}")
+            shutil.copy(source_file_path, destination_file_path)
             num_copied += 1
         else:
-            print(f"Skipped {os.path.join(source_path_input.get(), file_name)}")
+            print(f"Skipped {source_file_path}")
 
 
 def index_directory(source_path: str) -> List[str]:

@@ -62,6 +62,10 @@ venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
 # Run a script
 venv\Scripts\activate && python content-tools\pdf_and_image_tools.pyw
+
+venv\Scripts\activate && python content-tools\web_content_downloader\web_content_downloader.py
+
+venv\Scripts\activate && python content-tools\directory_filter.pyw
 ```
 
 <br><br>

@@ -71,13 +71,20 @@ class WindowManager:
         self.total_frames = self.num_windows + 2
         self.frames = [tk.Frame(self.main_window) for _ in range(self.total_frames)]
         self.titles = [tk.Label(self.frames[0], text="Print Window Titles", font=("Arial", 16))]
-        self.titles.append(tk.Label(self.frames[1], text="TEST", font=("Arial", 16)))
+        self.titles.append(tk.Label(self.frames[1], text="Window Properties", font=("Arial", 16)))
+        self.window_frames_index_offset = 2
+
+        # Add column labels for input boxes
+        self.column_labels = ["Name", "X", "Y", "Width", "Height"]
+        for i, label in enumerate(self.column_labels):
+            tk.Label(self.frames[1], text=label, font=("Arial", 10)).pack(side=tk.LEFT, padx=5)
 
         self.titles += [tk.Label(self.frames[i], text=f"Window {i-1}", font=("Arial", 16)) for i in
-                        range(2, self.total_frames)]
+                        range(self.total_frames-self.num_windows, self.total_frames)]
         for i in range(self.total_frames):
             self.frames[i].pack(fill=tk.X, padx=5, pady=5)
-            self.titles[i].pack(side=tk.LEFT)
+            if i != 1:  # Skip packing the title for the column labels frame
+                self.titles[i].pack(side=tk.LEFT)
 
         # Create Window objects and load values
         self.windows = [Window(frame, i-1, self.file_path) for i, frame in enumerate(self.frames[2:], start=1)]
@@ -173,6 +180,8 @@ class WindowManager:
             # Move and resize window
             win32gui.SetForegroundWindow(hwnd)
             win32gui.MoveWindow(hwnd, int(x), int(y), int(width), int(height), True)
+
+            print(f"Window {name} updated to: ({x}, {y}), ({width}, {height})")
 
             # Toggle window visibility if toggle flag is set
             if toggle:

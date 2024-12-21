@@ -7,13 +7,23 @@ When running this script as a shortcut:
 2. Check the "Run as Administrator" box.
 """
 
+import ctypes
 import json
 import os
+import sys
 import tkinter as tk
-
+import tkinter.messagebox
 import win32con
 import win32gui
 
+try:
+    is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+except:
+    is_admin = False
+
+if not is_admin:
+    tk.messagebox.showerror("Error", "This program requires administrator privileges. Please run as administrator.")
+    sys.exit()
 
 class Window:
     def __init__(self, parent_widget, window_index, file_path):
@@ -52,7 +62,12 @@ class WindowManager:
         self.main_window = tk.Tk()
         self.main_window.title("Window Manager")
         self.num_windows = num_windows
-        self.file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "window_manager.json")
+
+        # Determine the directory of the executable
+        if getattr(sys, 'frozen', False):
+            self.file_path = os.path.join(os.path.dirname(sys.executable), "window_manager.json")
+        else:
+            self.file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "window_manager.json")
 
         # Window dimensions and centering
         self.width, self.height = 600, 400
@@ -137,6 +152,7 @@ class WindowManager:
     def update_button(self, index, toggle=False):
         # Get window data and update the target window
         window_data = self.windows[index].get_values()
+        window_data['name'] = window_data['name'].strip()  # Strip the window title
         self.resize_show_window(self, **window_data, toggle=toggle)
 
         # Load existing data from file or initialize as empty list if file not found
@@ -158,22 +174,20 @@ class WindowManager:
 
     def print_button(self):
         # Collect visible window information
-        window_info = []
-
-        def handler(hwnd, _):
+        visible_windows = []
+        def window_handler(hwnd, _):
             if win32gui.IsWindowVisible(hwnd):
-                title = win32gui.GetWindowText(hwnd)
-                if title:
-                    rect = win32gui.GetWindowRect(hwnd)
-                    x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
-                    window_info.append(f"{title}\nPosition: ({x}, {y}), Size: ({w}, {h})")
-
-        win32gui.EnumWindows(handler, None)
-        window_info.sort()
-
+                window_title = win32gui.GetWindowText(hwnd)
+                if window_title:
+                    window_rect = win32gui.GetWindowRect(hwnd)
+                    x, y, width, height = window_rect[0], window_rect[1], window_rect[2] - window_rect[0], window_rect[3] - window_rect[1]
+                    visible_windows.append(f"{window_title}\nPosition: ({x}, {y}), Size: ({width}, {height})")
+        win32gui.EnumWindows(window_handler, None)
+        visible_windows.sort()
+    
         # Print result to text widget
         self.result_text.delete(1.0, tk.END)
-        self.result_text.insert(tk.END, "\n\n".join(window_info))
+        self.result_text.insert(tk.END, "\n\n".join(visible_windows))
 
     @staticmethod
     def resize_show_window(self, name, x, y, width, height, toggle=False):

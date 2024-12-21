@@ -54,18 +54,13 @@ class WindowManager:
         self.num_windows = num_windows
         self.file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "window_manager.json")
 
-        # Window dimensions
+        # Window dimensions and centering
         self.width, self.height = 600, 400
-        self.main_window.geometry(f"{self.width}x{self.height}")
-
-        # Screen dimensions
         self.screen_width = self.main_window.winfo_screenwidth()
         self.screen_height = self.main_window.winfo_screenheight()
-
-        # Centering the window
         center_x = int((self.screen_width / 2) - (self.width / 2))
         center_y = int((self.screen_height / 2) - (self.height / 2))
-        self.main_window.geometry(f"+{center_x}+{center_y}")
+        self.main_window.geometry(f"{self.width}x{self.height}+{center_x}+{center_y}")
 
         # Widget creation and main loop
         self.create_widgets()
@@ -73,16 +68,19 @@ class WindowManager:
 
     def create_widgets(self):
         # Define and pack title frames and labels
-        self.frames = [tk.Frame(self.main_window) for _ in range(self.num_windows + 1)]
+        self.total_frames = self.num_windows + 2
+        self.frames = [tk.Frame(self.main_window) for _ in range(self.total_frames)]
         self.titles = [tk.Label(self.frames[0], text="Print Window Titles", font=("Arial", 16))]
-        self.titles += [tk.Label(self.frames[i], text=f"Window {i}", font=("Arial", 16)) for i in
-                        range(1, self.num_windows + 1)]
-        for i in range(self.num_windows + 1):
+        self.titles.append(tk.Label(self.frames[1], text="TEST", font=("Arial", 16)))
+
+        self.titles += [tk.Label(self.frames[i], text=f"Window {i-1}", font=("Arial", 16)) for i in
+                        range(2, self.total_frames)]
+        for i in range(self.total_frames):
             self.frames[i].pack(fill=tk.X, padx=5, pady=5)
             self.titles[i].pack(side=tk.LEFT)
 
         # Create Window objects and load values
-        self.windows = [Window(frame, i, self.file_path) for i, frame in enumerate(self.frames[1:])]
+        self.windows = [Window(frame, i-1, self.file_path) for i, frame in enumerate(self.frames[2:], start=1)]
         for window in self.windows:
             window.load_values()
 
@@ -94,15 +92,15 @@ class WindowManager:
         self.print_button.pack(side=tk.LEFT)
 
         # Define and pack Update buttons
-        self.update_buttons = [tk.Button(self.frames[i], text="Update", command=lambda i=i: self.update_button(i - 1))
-                               for i in range(1, self.num_windows + 1)]
+        self.update_buttons = [tk.Button(self.frames[i], text="Update", command=lambda i=i: self.update_button(i - 2))
+                                for i in range(2, self.total_frames)]
         for button in self.update_buttons:
             button.pack(side=tk.LEFT, padx=5)
 
         # Define and pack Toggle buttons
         self.hide_buttons = [
-            tk.Button(self.frames[i], text="Toggle", command=lambda i=i: self.update_button(i - 1, toggle=True)) for i
-            in range(1, self.num_windows + 1)]
+            tk.Button(self.frames[i], text="Toggle", command=lambda i=i: self.update_button(i - 2, toggle=True)) for i
+            in range(2, self.total_frames)]
         for button in self.hide_buttons:
             button.pack(side=tk.LEFT, padx=5)
 

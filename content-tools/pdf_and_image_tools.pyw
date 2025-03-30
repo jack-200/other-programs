@@ -4,18 +4,20 @@ import io
 import os
 import sys
 
+# Optional imports with fallback handling
 try:
     import cairosvg
-except (ModuleNotFoundError, OSError) as e:
-    print("Package CairoSVG is not installed. Cannot convert SVG files to PNG.")
-    is_cairosvg_installed = False
+    cairosvg_available = True
+except (ModuleNotFoundError, OSError):
+    print("CairoSVG not installed. Cannot convert SVG to PNG.")
+    cairosvg_available = False
 
 try:
     import img2pdf
-    is_img2pdf_installed = True
-except (ModuleNotFoundError) as e:
-    print("Package img2pdf is not installed. Cannot enhance contrast of PDFs.")
-    is_img2pdf_installed = False
+    img2pdf_available = True
+except ModuleNotFoundError:
+    print("img2pdf not installed. Cannot enhance PDF contrast.")
+    img2pdf_available = False
 
 import numpy
 import pypdf
@@ -28,16 +30,14 @@ from PyQt5.QtWidgets import (
 from pdf2image import convert_from_path
 
 PATH_TO_FOLDER = r""
-POPPLER_PATH = r""
-if not os.path.exists(POPPLER_PATH):
-    print("Poppler not found. Cannot convert PDF files to images.")
-    is_poppler_installed = False
+POPPLER_PATH = r"C:\Miscellaneous\Tools\poppler-24.08.0\Library\bin"
+is_poppler_installed = os.path.exists(POPPLER_PATH) or print("Poppler not found. Cannot convert PDF files to images.")
 
 def ensure_folder(source_path):
     # Set default path if not specified and create folder if it doesn't exist
     if source_path == "":
         source_path = os.path.join(os.path.expanduser("~"), "Downloads", "PDF-IMG")
-        print(f"Path to folder not specified. Using default path: {source_path}")
+        print(f"Path to folder not specified. Using default path: {source_path}.")
 
     if not os.path.exists(source_path):
         os.makedirs(source_path)
@@ -220,7 +220,7 @@ def pdf_to_image(path):
         return
     file_paths = index_directory(path, "pdf")
     for file in file_paths:
-        pdf_pages = convert_from_path(file, dpi=300, poppler_path=POPPLER_PATH)
+        pdf_pages = convert_from_path(file, poppler_path=POPPLER_PATH)
         for page_num, pdf_page in enumerate(pdf_pages):
             pdf_page.save(f"{strip_ext(file)} {page_num}.png")  # append " {page_num}" to file name
 
@@ -484,21 +484,31 @@ def enhance_contrast(dir_path):
         print(f"Contrast enhanced PDF saved to: {output_path}")
 
 
-def rename_files(directory_path):
-    """Rename all files in a directory with a specified base name and sequential numbering."""
-    new_name = get_input()
-    if not new_name:
+def rename_files(dir_path):
+    """Rename all files in a directory with a base name and sequential numbering."""
+    base_name = get_input()
+    if not base_name:
         return
 
-    # Get all files in the directory
-    file_paths = index_directory(directory_path)
+    # Gather files and calculate zero-padding
+    files = index_directory(dir_path)
+    total = len(files)
+    padding = len(str(total))
 
-    # Rename files
-    for index, file_path in enumerate(file_paths):
-        new_file_path = f"{directory_path}\\{new_name}-{index + 1}.{get_file_type(file_path)}"
-        os.rename(file_path, new_file_path)
+    # Rename files in two steps: temporary names and final names
+    temp_suffix = "_temp"
+    temp_files = []
+    for i, file in enumerate(files, start=1):
+        temp_name = f"{dir_path}\\{temp_suffix}-{i}.{get_file_type(file)}"
+        os.rename(file, temp_name)
+        temp_files.append(temp_name)
 
-    print(f"Files renamed to {new_name}-1, {new_name}-2, etc.")
+    for i, temp_file in enumerate(temp_files, start=1):
+        padded_num = str(i).zfill(padding)
+        final_name = f"{dir_path}\\{base_name}-{padded_num}.{get_file_type(temp_file)}"
+        os.rename(temp_file, final_name)
+
+    print(f"Files renamed to {base_name}-{'0' * padding}1, {base_name}-{'0' * padding}2, etc.")
 
 
 def restart_program():

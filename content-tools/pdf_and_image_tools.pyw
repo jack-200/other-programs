@@ -360,6 +360,7 @@ def print_info(directory):
             with open(path, "rb") as f:
                 pdf = pypdf.PdfReader(f)
                 metadata = pdf.metadata or {}
+                output += "\n\tMetadata:\n"
                 for key, value in metadata.items():
                     output += f"\t{key}: {value}\n"
 

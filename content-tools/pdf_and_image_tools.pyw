@@ -175,40 +175,51 @@ def save_page_range(path, start_page, end_page):
 def resave_files(path, sanitize=False):
     """Resave PDFs and images, stripping metadata and potentially reducing size."""
     results = ""
+
+    # Process files in the directory
     for file_path in index_directory(path, ["jpeg", "jpg", "pdf", "png"]):
         org_size = os.path.getsize(file_path) / 1024
 
+        # Handle PDF files
         if file_path.lower().endswith("pdf"):
             with open(file_path, "rb") as pdf:
                 org = io.BytesIO(pdf.read())
             reader = pypdf.PdfReader(org)
             writer = pypdf.PdfWriter()
+
             for page in reader.pages:
                 writer.add_page(page)
+
             os.chmod(file_path, 0o777)
             os.remove(file_path)
+
             if sanitize:
                 file_path = os.path.join(get_folder_path(file_path), "document.pdf")
 
-            # Clear the metadata
-            writer._info = pypdf.generic.DictionaryObject()
+            writer._info = pypdf.generic.DictionaryObject()  # Clear metadata
 
             with open(file_path, "wb") as pdf:
                 writer.write(pdf)
+
+        # Handle image files
         else:
-            img = Image.open(file_path)
-            img_without_metadata = img.copy()
+            with Image.open(file_path) as img:  # Use context manager to ensure the file is closed
+                img_without_metadata = img.copy()
+
             os.chmod(file_path, 0o777)
             os.remove(file_path)
+
             if sanitize:
-                file_path = (get_folder_path(file_path) + r"\image." + get_file_type(file_path))
+                file_path = os.path.join(get_folder_path(file_path), f"image.{get_file_type(file_path)}")
+
             img_without_metadata.save(file_path)
 
+        # Calculate size change and update results
         new_size = os.path.getsize(file_path) / 1024
         pct_chg = f"{round(((new_size - org_size) / org_size) * 100, 1)}%"
-        results += file_path + " "
-        results += f"{round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
+        results += f"{file_path} {round(org_size, 1)} KB to {round(new_size, 1)} KB ({pct_chg})\n"
 
+    # Display results
     statusField.setText(results)
     print(results)
 

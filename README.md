@@ -10,61 +10,63 @@ This program comes with a GUI and buttons connecting to various PDF and image fu
 
 ### PDF Operations
 
-* **Merge PDFs**: Combines all PDFs in the directory into one PDF file.
-* **Stitch PDFs**: Stitches all PDF pages into one, creating vertical and horizontal versions.
-* **Encrypt PDF**: Encrypts PDFs in the directory with the user-provided key.
-* **Save Page Range**: Saves a range of pages from each PDF file. Formats: '9-99' for pages 9 to 99, '-99' for 1 to
+- **Merge PDFs**: Combines all PDFs in the directory into one PDF file.
+- **Stitch PDFs**: Stitches all PDF pages into one, creating vertical and horizontal versions.
+- **Encrypt PDF**: Encrypts PDFs in the directory with the user-provided key.
+- **Save Page Range**: Saves a range of pages from each PDF file. Formats: '9-99' for pages 9 to 99, '-99' for 1 to
   99, '99-' for 99 onwards, '99' for page 99 only.
-* **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
-* **PDF To Image**: Converts PDF pages to individual PNG files.
+- **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
+- **PDF To Image**: Converts PDF pages to individual PNG files.
 
 ### Image Operations
 
-* **Image To PDF**: Converts PNG and JPG files to individual PDFs.
-* **Crop Images**: Crops images based on predefined dimensions.
-* **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and
+- **Image To PDF**: Converts PNG and JPG files to individual PDFs.
+- **Crop Images**: Crops images based on predefined dimensions.
+- **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and
   vertically merged PNG and JPG formats.
-* **Convert Images**: Converts existing image files to a duplicate PNG or JPG format.
-* **Img To Ico**: Converts image files to ICO format
-* **Get Image Colors**: Get the average color and most common colors of all images in the directory.
-* **Crop By 90**: Crops images by 90% of their dimensions, removing the outer parts of the image.
+- **Convert Images**: Converts existing image files to a duplicate PNG or JPG format.
+- **Img To Ico**: Converts image files to ICO format
+- **Get Image Colors**: Get the average color and most common colors of all images in the directory.
+- **Crop By 90**: Crops images by 90% of their dimensions, removing the outer parts of the image.
 
 ### General File Operations
 
-* **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
-* **Sanitize**: Strips metadata and sets a generic file name.
-* **Print Metadata**: Prints out the metadata for all image and PDF files.
-* **Rename Files**: Rename all files in a directory with a specified base name and sequential numbering.
-* **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
+- **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
+- **Sanitize**: Strips metadata and sets a generic file name.
+- **Print Metadata**: Prints out the metadata for all image and PDF files.
+- **Rename Files**: Rename all files in a directory with a specified base name and sequential numbering.
+- **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
 
 ### Settings
 
-* **Restart Program**: Restarts the program to apply code changes and detach from file usage.
-* **Quit**: Handle quit button click event.
-* Files are processed in alphabetical order
+- **Restart Program**: Restarts the program to apply code changes and detach from file usage.
+- **Quit**: Handle quit button click event.
+- Files are processed in alphabetical order
 
 ### Setup
 
-The variable PATH_TO_FOLDER points to the source directory. It defaults to the Downloads/PDF-IMG folder.
+The variable `PATH_TO_FOLDER` points to the source directory. It defaults to the `Downloads/PDF-IMG` folder.
 
-The variable POPPLER_PATH must be changed to the ```bin``` folder of poppler. Instructions to install poppler can be
-found in the README here: https://github.com/Belval/pdf2image
+The variable `POPPLER_PATH` must be set to the `bin` folder of Poppler. Instructions to install Poppler can be found in the README here: https://github.com/Belval/pdf2image
+
+`cairosvg` and `img2pdf` require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
+
+`PyQt5` requires the "Desktop development with C++" workload from the Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/.
 
 ```bash
-# Install & Create virtual environment
+# Create a Virtual Environment
 python -m venv venv
 
-# Activate virtual environment & Install dependencies
+# Activate the Virtual Environment and Install Dependencies
 venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
-- cairosvg and img2pdf require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
-- PyQt5 requires the Desktop development with C++ workload from the Microsoft C++ Build Tools [https://visualstudio.microsoft.com/visual-cpp-build-tools/].
-
-# Run a script
+# Run PDF and Image Tools
 venv\Scripts\activate && python content-tools\pdf_and_image_tools.pyw
 
+# Run Web Content Downloader
 venv\Scripts\activate && python content-tools\web_content_downloader\web_content_downloader.py
 
+# Run Directory Filter
 venv\Scripts\activate && python content-tools\directory_filter.pyw
 ```
 
@@ -77,9 +79,9 @@ venv\Scripts\activate && python content-tools\directory_filter.pyw
 
 Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
 
-* wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/.
-* Inputting a YouTube playlist will copy the all video links in that playlist to the clipboard.
-* Files are saved in same location as script.
+- wkhtmltopdf is needed for the later and can be downloaded from https://wkhtmltopdf.org/.
+- Inputting a YouTube playlist will copy the all video links in that playlist to the clipboard.
+- Files are saved in same location as script.
 
 <br><br>
 
@@ -93,10 +95,10 @@ venv\Scripts\activate && python window_manager\window_manager.pyw
 
 A tool for managing windows on the desktop with the following functionalities:
 
-* **Print:** Outputs details (title, position, size) of all visible windows.
-* **Update:** Modifies the specified window's location and dimensions.
-* **Toggle:** Applies Update and additionally toggles window visibility.
-* Input values are saved to a .json file.
+- **Print:** Outputs details (title, position, size) of all visible windows.
+- **Update:** Modifies the specified window's location and dimensions.
+- **Toggle:** Applies Update and additionally toggles window visibility.
+- Input values are saved to a .json file.
 
 This program can be converted to an executable using PyInstaller:
 
@@ -112,13 +114,13 @@ pyinstaller --onefile --windowed window_manager\window_manager.pyw
 
 A tool for filtering files in a directory with the following functionalities:
 
-* **Filter files by file type:** Files in the source directory that match the specified list of file types.
+- **Filter files by file type:** Files in the source directory that match the specified list of file types.
 
-* **Filter files by substring:** Files in the source directory whose names contain the specified substring.
+- **Filter files by substring:** Files in the source directory whose names contain the specified substring.
 
-* **Filter files by regex:** Files in the source directory whose names match the specified regular expression pattern.
+- **Filter files by regex:** Files in the source directory whose names match the specified regular expression pattern.
 
-* **Copy files:** The filtered files can be copied to a specified destination directory.
+- **Copy files:** The filtered files can be copied to a specified destination directory.
 
 <br><br>
 
@@ -129,6 +131,6 @@ A tool for filtering files in a directory with the following functionalities:
 This PowerShell script generates a battery report, a system information report, and a DirectX Diagnostic report, saves
 them in the user's Downloads folder with the current date in the filename.
 
-* **Enable PowerShell scripts:** Use `Set-ExecutionPolicy RemoteSigned`. Note the potential security risks.
+- **Enable PowerShell scripts:** Use `Set-ExecutionPolicy RemoteSigned`. Note the potential security risks.
 
-* **Run scripts requiring admin rights:** Use `powershell.exe -File "C:\path\to\script.ps1"`.
+- **Run scripts requiring admin rights:** Use `powershell.exe -File "C:\path\to\script.ps1"`.

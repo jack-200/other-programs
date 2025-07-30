@@ -1,49 +1,67 @@
 # Other-Programs
 
-This is a collection of standalone programs that offer tools for file management, system optimization, and programming.
+A collection of standalone programs offering tools for file management, system optimization, and programming utilities.
 
-# [PDF and Image Tools](GUI-Applications/pdf_and_image_tools.pyw)
+## 📋 Table of Contents
 
-![image](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
+- [PDF and Image Tools](#pdf-and-image-tools)
+- [Web Content Downloader](#web-content-downloader)
+- [Window Manager](#window-manager)
+- [Directory Filter](#directory-filter)
+- [Report Generator](#report-generator)
+- [Setup Instructions](#setup-instructions)
 
-This program comes with a GUI and buttons connecting to various PDF and image functions.
+## 📄 PDF and Image Tools
 
-### PDF Operations
+**File:** [`GUI-Applications/pdf_and_image_tools.pyw`](GUI-Applications/pdf_and_image_tools.pyw)
 
-- **Merge PDFs**: Combines all PDFs in the directory into one PDF file.
-- **Stitch PDFs**: Stitches all PDF pages into one, creating vertical and horizontal versions.
-- **Encrypt PDF**: Encrypts PDFs in the directory with the user-provided key.
-- **Save Page Range**: Saves a range of pages from each PDF file. Formats: '9-99' for pages 9 to 99, '-99' for 1 to
-  99, '99-' for 99 onwards, '99' for page 99 only.
-- **Enhance Contrast**: Enhance the contrast of a PDF by 25%.
-- **PDF To Image**: Converts PDF pages to individual PNG files.
+![PDF and Image Tools Interface](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
 
-### Image Operations
+A comprehensive GUI application for PDF and image manipulation with various processing capabilities.
 
-- **Image To PDF**: Converts PNG and JPG files to individual PDFs.
-- **Crop Images**: Crops images based on predefined dimensions.
-- **Merge Images**: Merges all image files in the directory and save them as a combination of horizontally and
-  vertically merged PNG and JPG formats.
-- **Convert Images**: Converts existing image files to a duplicate PNG or JPG format.
-- **Img To Ico**: Converts image files to ICO format
-- **Get Image Colors**: Get the average color and most common colors of all images in the directory.
-- **Crop By 90**: Crops images by 90% of their dimensions, removing the outer parts of the image.
+### 📋 PDF Operations
 
-### General File Operations
+| Feature              | Description                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Merge PDFs**       | Combines all PDFs in the directory into one PDF file                                                                                                    |
+| **Stitch PDFs**      | Stitches all PDF pages into one, creating vertical and horizontal versions                                                                              |
+| **Encrypt PDF**      | Encrypts PDFs in the directory with a user-provided key                                                                                                 |
+| **Save Page Range**  | Saves a range of pages from each PDF file. Formats: `9-99` for pages 9 to 99, `-99` for pages 1 to 99, `99-` for page 99 onwards, `99` for page 99 only |
+| **Enhance Contrast** | Enhances the contrast of a PDF by 25%                                                                                                                   |
+| **PDF To Image**     | Converts PDF pages to individual PNG files                                                                                                              |
 
-- **Resave Files**: Resave PDFs and images, stripping metadata and potentially reducing size.
-- **Sanitize**: Strips metadata and sets a generic file name.
-- **Print Metadata**: Prints out the metadata for all image and PDF files.
-- **Rename Files**: Rename all files in a directory with a specified base name and sequential numbering.
-- **Duplicate Detector**: Scans a directory and identifies any duplicate files using MD5 hashing.
+### 🖼️ Image Operations
 
-### Settings
+| Feature              | Description                                                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Image To PDF**     | Converts PNG and JPG files to individual PDFs                                                                                     |
+| **Crop Images**      | Crops images based on predefined dimensions                                                                                       |
+| **Merge Images**     | Merges all image files in the directory and saves them as a combination of horizontally and vertically merged PNG and JPG formats |
+| **Convert Images**   | Converts existing image files to duplicate PNG or JPG format                                                                      |
+| **Img To ICO**       | Converts image files to ICO format                                                                                                |
+| **Get Image Colors** | Gets the average color and most common colors of all images in the directory                                                      |
+| **Crop By 90%**      | Crops images by 90% of their dimensions, removing the outer parts of the image                                                    |
 
-- **Restart Program**: Restarts the program to apply code changes and detach from file usage.
-- **Quit**: Handle quit button click event.
-- Files are processed in alphabetical order
+### 🛠️ General File Operations
 
-### Setup
+| Feature                | Description                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| **Resave Files**       | Resaves PDFs and images, stripping metadata and potentially reducing file size       |
+| **Sanitize**           | Strips metadata and sets a generic filename                                          |
+| **Print Metadata**     | Prints out the metadata for all image and PDF files                                  |
+| **Rename Files**       | Renames all files in a directory with a specified base name and sequential numbering |
+| **Duplicate Detector** | Scans a directory and identifies any duplicate files using MD5 hashing               |
+
+### ⚙️ Settings
+
+| Feature             | Description                                                           |
+| ------------------- | --------------------------------------------------------------------- |
+| **Restart Program** | Restarts the program to apply code changes and detach from file usage |
+| **Quit**            | Handles quit button click event                                       |
+
+### 🔧 Setup
+
+Files are processed in alphabetical order.
 
 The variable `PATH_TO_FOLDER` points to the source directory. It defaults to the `Downloads/PDF-IMG` folder.
 
@@ -51,15 +69,21 @@ The variable `POPPLER_PATH` must be set to the `bin` folder of Poppler. Instruct
 
 `cairosvg` and `img2pdf` require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs.
 
-`PyQt5` requires the "Desktop development with C++" workload from the Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+`PyQt5` requires the "Desktop development with C++" workload from the Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+### 💾 Installation
 
 ```bash
-# Create a Virtual Environment
+# Create Virtual Environment
 python -m venv venv
 
-# Activate the Virtual Environment and Install Dependencies
+# Activate Environment and Install Dependencies
 venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
+```
 
+### ▶️ Running the Applications
+
+```bash
 # Run PDF and Image Tools
 venv\Scripts\activate && python content-tools\pdf_and_image_tools.pyw
 

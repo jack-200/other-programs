@@ -7,31 +7,32 @@ import sys
 # Optional imports with fallback handling
 try:
     import cairosvg
-    cairosvg_available = True
+
+    is_cairosvg_installed = True
 except (ModuleNotFoundError, OSError):
     print("CairoSVG not installed. Cannot convert SVG to PNG.")
-    cairosvg_available = False
+    is_cairosvg_installed = False
 
 try:
     import img2pdf
-    img2pdf_available = True
+
+    is_img2pdf_installed = True
 except ModuleNotFoundError:
     print("img2pdf not installed. Cannot enhance PDF contrast.")
-    img2pdf_available = False
+    is_img2pdf_installed = False
 
 import numpy
 import pypdf
 from PIL import ExifTags, Image, ImageEnhance
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, 
-    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout
-)
+from PyQt5.QtWidgets import (QApplication, QFormLayout, QTextEdit, QLineEdit, QMessageBox, QPushButton, QSizePolicy,
+                             QSpacerItem, QVBoxLayout, QWidget, QGroupBox, QLabel, QGridLayout)
 from pdf2image import convert_from_path
 
 PATH_TO_FOLDER = r""
 POPPLER_PATH = r"C:\Miscellaneous\Tools\poppler-24.08.0\Library\bin"
 is_poppler_installed = os.path.exists(POPPLER_PATH) or print("Poppler not found. Cannot convert PDF files to images.")
+
 
 def ensure_folder(source_path):
     # Set default path if not specified and create folder if it doesn't exist
@@ -61,7 +62,7 @@ def merge_pdfs(dir_path):
     result_pdf_path = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
     with open(result_pdf_path, "wb") as output_pdf:
         writer.write(output_pdf)
-    
+
     statusField.setText(f"\nMerge PDF Result: {result_pdf_path}")
 
 
@@ -118,7 +119,8 @@ def encrypt_pdf(dir_path):
 
     # Retrieve encryption key and validate
     encryption_key = get_input()
-    if not encryption_key: return
+    if not encryption_key:
+        return
 
     # Process each PDF file in the directory
     for pdf_path in index_directory(dir_path, "pdf"):
@@ -167,7 +169,7 @@ def save_page_range(path, start_page, end_page):
         writer = pypdf.PdfWriter()
         reader = pypdf.PdfReader(file_path)
         for page in range(start_page - 1, end_page):
-                writer.add_page(reader.pages[page])
+            writer.add_page(reader.pages[page])
         with open(f"{path}\\{start_page}-{end_page} {get_file_name(file_path)}", "wb") as output_pdf:
             writer.write(output_pdf)
 
@@ -271,7 +273,7 @@ def crop_images(path):
     file_paths = index_directory(path, file_types=["png", "jpg"])
     crop_configs = {  # image cropping is handled case-by-casely
         (1280, 1080): [(0, 0, 1280, 720)], (2560, 720): [(0, 0, 1280, 720), (1280, 0, 2560, 720)],
-        (3200, 1080): [(0, 0, 1920, 1080), (1920, 0, 3200, 1080)], }
+        (3200, 1080): [(0, 0, 1920, 1080), (1920, 0, 3200, 1080)]}
 
     for file_path in file_paths:
         original_image = Image.open(file_path)
@@ -308,9 +310,9 @@ def merge_images(path):
         max_height = max(max_height, height)
 
     # Convert images to RGB and then to arrays for stacking
-    v_scaled_imgs = [numpy.array(img.convert('RGB').resize((max_width, round(max_width / img.width * img.height)))) for
+    v_scaled_imgs = [numpy.array(img.convert("RGB").resize((max_width, round(max_width / img.width * img.height)))) for
                      img in imgs]
-    h_scaled_imgs = [numpy.array(img.convert('RGB').resize((round(max_height / img.height * img.width), max_height)))
+    h_scaled_imgs = [numpy.array(img.convert("RGB").resize((round(max_height / img.height * img.width), max_height)))
                      for img in imgs]
 
     # Combine images vertically and horizontally, then save
@@ -375,7 +377,7 @@ def print_info(directory):
                 for key, value in metadata.items():
                     output += f"\t{key}: {value}\n"
 
-    statusField.setText(output.lstrip('\n'))
+    statusField.setText(output.lstrip("\n"))
 
 
 def duplicate_detector(directory_path):
@@ -411,7 +413,7 @@ def get_image_colors(directory_path):
     # Open image and get colors
     for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
         img = Image.open(full_file_path)
-        if img.mode == 'RGBA':
+        if img.mode == "RGBA":
             colors = [pixel[:3] for pixel in img.getdata() if pixel[3] == 255]
         else:
             colors = [pixel[:3] for pixel in img.getdata()]
@@ -455,13 +457,13 @@ def convert_svg_and_webp_to_png(directory_path):
     for full_file_path in index_directory(directory_path, file_types=["svg", "webp"]):
         output_path = f"{strip_ext(full_file_path)}.png"
 
-        if full_file_path.endswith('.svg'):
+        if full_file_path.endswith(".svg"):
             if not is_cairosvg_installed:
                 print("Package CairoSVG is not installed. Cannot convert SVG files to PNG.")
                 continue
             cairosvg.svg2png(url=full_file_path, write_to=output_path)
             print(f"Converted {full_file_path} from SVG to PNG.")
-        elif full_file_path.endswith('.webp'):
+        elif full_file_path.endswith(".webp"):
             img = Image.open(full_file_path)
             img.save(output_path, "PNG")
             print(f"Converted {full_file_path} from WEBP to PNG.")
@@ -485,7 +487,7 @@ def enhance_contrast(dir_path):
 
             # Save the enhanced image in PNG format to a BytesIO object
             byte_io = io.BytesIO()
-            enhanced_image.save(byte_io, format='PNG')
+            enhanced_image.save(byte_io, format="PNG")
             enhanced_images.append(byte_io.getvalue())
 
         # Define output path, convert enhanced images back to PDF and save
@@ -545,7 +547,7 @@ def quit():
 
 def index_directory(path, file_types=None):
     """Get the list of file names in the target directory. Defaults to all file types if none specified."""
-    if file_types is None or file_types == '*':  # No filtering by file type
+    if file_types is None or file_types == "*":  # No filtering by file type
         file_types_filter = False
     else:
         if type(file_types) == list:  # convert file_types into a list

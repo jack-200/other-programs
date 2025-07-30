@@ -13,6 +13,7 @@ import os
 import sys
 import tkinter as tk
 import tkinter.messagebox
+
 import win32con
 import win32gui
 
@@ -24,6 +25,7 @@ except:
 if not is_admin:
     tk.messagebox.showerror("Error", "This program requires administrator privileges. Please run as administrator.")
     sys.exit()
+
 
 class Window:
     def __init__(self, parent_widget, window_index, file_path):
@@ -90,29 +92,22 @@ class WindowManager:
         self.window_frames_index_offset = 2
 
         # Add column labels for input boxes
-        self.column_labels = [
-            "                           ", 
-            "Name",
-            "                                             ",  
-            "X",
-            " ",
-            "Y", 
-            " ",
-            "Width", 
-            "Height"
-        ]
+        self.column_labels = ["                           ", "Name", "                                             ",
+            "X", " ", "Y", " ", "Width", "Height"]
         for i, label in enumerate(self.column_labels):
             tk.Label(self.frames[1], text=label, font=("Arial", 8)).pack(side=tk.LEFT, padx=5)
 
-        self.titles += [tk.Label(self.frames[i], text=f"Window {i - self.window_frames_index_offset + 1}", font=("Arial", 16)) for i in
-                        range(self.window_frames_index_offset, self.total_frames)]
+        self.titles += [
+            tk.Label(self.frames[i], text=f"Window {i - self.window_frames_index_offset + 1}", font=("Arial", 16)) for i
+            in range(self.window_frames_index_offset, self.total_frames)]
         for i in range(self.total_frames):
             self.frames[i].pack(fill=tk.X, padx=5, pady=5)
             if i != 1:  # Skip packing the title for the column labels frame
                 self.titles[i].pack(side=tk.LEFT)
 
         # Create Window objects and load values
-        self.windows = [Window(frame, i - self.window_frames_index_offset, self.file_path) for i, frame in enumerate(self.frames[self.window_frames_index_offset:], start=self.window_frames_index_offset)]
+        self.windows = [Window(frame, i - self.window_frames_index_offset, self.file_path) for i, frame in
+                        enumerate(self.frames[self.window_frames_index_offset:], start=self.window_frames_index_offset)]
         for window in self.windows:
             window.load_values()
 
@@ -124,15 +119,17 @@ class WindowManager:
         self.print_button.pack(side=tk.LEFT)
 
         # Define and pack Update buttons
-        self.update_buttons = [tk.Button(self.frames[i], text="Update", command=lambda i=i: self.update_button(i - self.window_frames_index_offset))
-                                for i in range(self.window_frames_index_offset, self.total_frames)]
+        self.update_buttons = [tk.Button(self.frames[i], text="Update",
+                                         command=lambda i=i: self.update_button(i - self.window_frames_index_offset))
+                               for i in range(self.window_frames_index_offset, self.total_frames)]
         for button in self.update_buttons:
             button.pack(side=tk.LEFT, padx=5)
 
         # Define and pack Toggle buttons
-        self.hide_buttons = [
-            tk.Button(self.frames[i], text="Toggle", command=lambda i=i: self.update_button(i - self.window_frames_index_offset, toggle=True)) for i
-            in range(self.window_frames_index_offset, self.total_frames)]
+        self.hide_buttons = [tk.Button(self.frames[i], text="Toggle",
+                                       command=lambda i=i: self.update_button(i - self.window_frames_index_offset,
+                                                                              toggle=True)) for i in
+            range(self.window_frames_index_offset, self.total_frames)]
         for button in self.hide_buttons:
             button.pack(side=tk.LEFT, padx=5)
 
@@ -175,16 +172,19 @@ class WindowManager:
     def print_button(self):
         # Collect visible window information
         visible_windows = []
+
         def window_handler(hwnd, _):
             if win32gui.IsWindowVisible(hwnd):
                 window_title = win32gui.GetWindowText(hwnd)
                 if window_title:
                     window_rect = win32gui.GetWindowRect(hwnd)
-                    x, y, width, height = window_rect[0], window_rect[1], window_rect[2] - window_rect[0], window_rect[3] - window_rect[1]
+                    x, y, width, height = window_rect[0], window_rect[1], window_rect[2] - window_rect[0], window_rect[
+                        3] - window_rect[1]
                     visible_windows.append(f"{window_title}\nPosition: ({x}, {y}), Size: ({width}, {height})")
+
         win32gui.EnumWindows(window_handler, None)
         visible_windows.sort()
-    
+
         # Print result to text widget
         self.result_text.delete(1.0, tk.END)
         self.result_text.insert(tk.END, "\n\n".join(visible_windows))

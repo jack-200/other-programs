@@ -57,7 +57,7 @@ def copy_file_to_destination(file_names: List[str]) -> None:
         print(f"Destination file path: {destination_file_path}")
         print(f"Destination path: {destination_path}")
         print(f"File name: {file_name}")
-        
+
         if not os.path.exists(destination_file_path):
             print(f"Copying {source_file_path} to {destination_file_path}")
             shutil.copy(source_file_path, destination_file_path)

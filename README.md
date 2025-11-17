@@ -15,7 +15,7 @@ A collection of standalone programs offering tools for file management, system o
 
 ## 📄 [PDF and Image Tools](pdf_and_image_tools/main.pyw)
 
-![PDF and Image Tools Interface](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
+![PDF and Image Tools Interface](https://github.com/user-attachments/assets/ecf2f86c-0b00-4cc2-897b-1a981e808317)
 
 A comprehensive GUI application for PDF and image manipulation with various processing capabilities.
 
@@ -184,3 +184,4 @@ venv\Scripts\activate && python directory_filter\main.pyw
 # Window Manager
 venv\Scripts\activate && python window_manager\main.pyw
 ```
+

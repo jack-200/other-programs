@@ -111,7 +111,8 @@ A tool for managing windows on the desktop with comprehensive window control fun
 This program can be converted to an executable using PyInstaller:
 
 ```bash
-pyinstaller --onefile --windowed window_manager\main.pyw
+cd window_manager
+pyinstaller --onefile --windowed main.pyw
 ```
 
 ---

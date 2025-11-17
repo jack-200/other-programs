@@ -118,9 +118,7 @@ pyinstaller --onefile --windowed window_manager\window_manager.pyw
 
 ---
 
-## 📁 Directory Filter
-
-**File:** [`content-tools/directory_filter.pyw`](content-tools/directory_filter.pyw)
+## 📁 [Directory Filter](directory_filter/main.pyw)
 
 ![Directory Filter Interface](https://github.com/jack-200/other-programs/assets/86848773/4d4429af-28c5-4db4-a068-150aab34edf2)
 
@@ -184,7 +182,7 @@ venv\Scripts\activate && python pdf_and_image_tools\main.pyw
 venv\Scripts\activate && python web_content_downloader\main.py
 
 # Directory Filter
-venv\Scripts\activate && python content-tools\directory_filter.pyw
+venv\Scripts\activate && python directory_filter\main.pyw
 
 # Window Manager
 venv\Scripts\activate && python window_manager\window_manager.pyw

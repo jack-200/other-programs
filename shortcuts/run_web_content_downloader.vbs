@@ -7,7 +7,7 @@ scriptDir = FSO.GetParentFolderName(WScript.ScriptFullName)
 
 ' Construct paths
 venvPath = scriptDir & "\..\venv\Scripts\activate"
-pythonScriptPath = scriptDir & "\..\content-tools\web_content_downloader\web_content_downloader.py"
+pythonScriptPath = scriptDir & "\..\web_content_downloader\main.py"
 
 ' Run the command
 Shell.Run "cmd /c " & venvPath & " && pythonw " & pythonScriptPath & " && deactivate", 0, True

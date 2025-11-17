@@ -69,9 +69,7 @@ A comprehensive GUI application for PDF and image manipulation with various proc
 
 ---
 
-## 🌐 Web Content Downloader
-
-**File:** [`content-tools/web_content_downloader/web_content_downloader.py`](content-tools/web_content_downloader/web_content_downloader.py)
+## 🌐 [Web Content Downloader](web_content_downloader/main.py)
 
 ![Web Content Downloader Interface](https://github.com/jack-200/other-programs/assets/86848773/f61602b8-f7b5-4e7f-a7c1-36cd3c115d47)
 ![Web Content Downloader Example](https://github.com/jack-200/Other-Programs/assets/86848773/3933d1f2-21cb-4f3e-92cc-15de7be5c46b)
@@ -183,7 +181,7 @@ venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 venv\Scripts\activate && python pdf_and_image_tools\main.pyw
 
 # Web Content Downloader
-venv\Scripts\activate && python content-tools\web_content_downloader\web_content_downloader.py
+venv\Scripts\activate && python web_content_downloader\main.py
 
 # Directory Filter
 venv\Scripts\activate && python content-tools\directory_filter.pyw

@@ -91,9 +91,7 @@ Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
 
 ---
 
-## 🪟 Window Manager
-
-**File:** [`window_manager/window_manager.pyw`](window_manager/window_manager.pyw)
+## 🪟 [Window Manager](window_manager/main.pyw)
 
 ![Window Manager Interface](https://github.com/jack-200/other-programs/assets/86848773/fdedc72a-0016-46e0-8cb8-ab6aac16fd14)
 
@@ -113,7 +111,7 @@ A tool for managing windows on the desktop with comprehensive window control fun
 This program can be converted to an executable using PyInstaller:
 
 ```bash
-pyinstaller --onefile --windowed window_manager\window_manager.pyw
+pyinstaller --onefile --windowed window_manager\main.pyw
 ```
 
 ---
@@ -185,5 +183,5 @@ venv\Scripts\activate && python web_content_downloader\main.py
 venv\Scripts\activate && python directory_filter\main.pyw
 
 # Window Manager
-venv\Scripts\activate && python window_manager\window_manager.pyw
+venv\Scripts\activate && python window_manager\main.pyw
 ```

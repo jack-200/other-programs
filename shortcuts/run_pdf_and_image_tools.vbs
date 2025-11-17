@@ -7,7 +7,7 @@ scriptDir = FSO.GetParentFolderName(WScript.ScriptFullName)
 
 ' Construct paths
 venvPath = scriptDir & "\..\venv\Scripts\activate"
-pythonScriptPath = scriptDir & "\..\content-tools\pdf_and_image_tools.pyw"
+pythonScriptPath = scriptDir & "\..\pdf_and_image_tools\main.pyw"
 
 ' Run the command
 Shell.Run "cmd /c " & venvPath & " && pythonw " & pythonScriptPath & " && deactivate", 0, True

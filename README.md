@@ -13,9 +13,7 @@ A collection of standalone programs offering tools for file management, system o
 
 ---
 
-## 📄 PDF and Image Tools
-
-**File:** [`content-tools/pdf_and_image_tools.pyw`](content-tools/pdf_and_image_tools.pyw)
+## 📄 [PDF and Image Tools](pdf_and_image_tools/main.pyw)
 
 ![PDF and Image Tools Interface](https://github.com/jack-200/other-programs/assets/86848773/71a45eee-b12a-418b-ab6f-77007146ba91)
 
@@ -182,7 +180,7 @@ venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
 
 ```bash
 # PDF and Image Tools
-venv\Scripts\activate && python content-tools\pdf_and_image_tools.pyw
+venv\Scripts\activate && python pdf_and_image_tools\main.pyw
 
 # Web Content Downloader
 venv\Scripts\activate && python content-tools\web_content_downloader\web_content_downloader.py

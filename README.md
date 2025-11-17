@@ -133,9 +133,7 @@ A tool for filtering files in a directory with multiple filtering options and fi
 
 ---
 
-## 📊 Report Generator
-
-**File:** [`shell-scripts/ReportGenerator.ps1`](shell-scripts/ReportGenerator.ps1)
+## 📊 [Report Generator](report_generator/main.ps1)
 
 ![Report Generator Output](https://github.com/jack-200/other-programs/assets/86848773/43e68edb-0c8f-4773-a053-147f9e04e3c2)
 

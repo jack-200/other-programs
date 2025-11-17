@@ -4,12 +4,12 @@ A collection of standalone programs offering tools for file management, system o
 
 ## 📋 Table of Contents
 
-- [PDF and Image Tools](#pdf-and-image-tools)
-- [Web Content Downloader](#web-content-downloader)
-- [Window Manager](#window-manager)
-- [Directory Filter](#directory-filter)
-- [Report Generator](#report-generator)
-- [Setup Instructions](#setup-instructions)
+- [📄 PDF and Image Tools](#-pdf-and-image-tools)
+- [🌐 Web Content Downloader](#-web-content-downloader)
+- [🪟 Window Manager](#-window-manager)
+- [📁 Directory Filter](#-directory-filter)
+- [📊 Report Generator](#-report-generator)
+- [🚀 Setup Instructions](#-setup-instructions)
 
 ---
 

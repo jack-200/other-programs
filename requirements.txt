@@ -1,20 +1,15 @@
-pip
-setuptools
-wheel
-
-# cairosvg
-# img2pdf
 beautifulsoup4
-cffi
+cairosvg
 cryptography
+img2pdf
 numpy
 pdf2image
 pdfkit
-Pillow
+pillow
 pyinstaller
 pypdf
 pyperclip
-PyQt5
+pyqt5
 pytube
-pywin32
-Requests
+pywin32; sys_platform == 'win32'
+requests

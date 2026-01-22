@@ -1,18 +1,23 @@
 import json
 import os
+import shutil
 import subprocess
-import tkinter as tk
+import tkinter
 
+import bs4
 import pdfkit
 import pyperclip
 import pytube
 import requests
-from bs4 import BeautifulSoup
 
 
 def download_main():
     # Extract video URLs from the text widget
-    video_urls = [i.strip() for i in text_widget.get("1.0", "end-1c").split("\n") if len(i.strip()) > 1]
+    video_urls = [
+        i.strip()
+        for i in text_widget.get("1.0", "end-1c").split("\n")
+        if len(i.strip()) > 1
+    ]
     [print(f"{i + 1}. {elem}") for i, elem in enumerate(video_urls)]
     print()
 
@@ -43,7 +48,9 @@ def download_main():
 def download_audio(yt):
     # Get all audio streams and sort them by bitrate
     audio_streams = yt.streams.filter(only_audio=True)
-    sorted_audio_streams = sorted(audio_streams, key=lambda s: int(s.bitrate), reverse=True)
+    sorted_audio_streams = sorted(
+        audio_streams, key=lambda s: int(s.bitrate), reverse=True
+    )
 
     # Select the second best audio stream
     selected_audio_stream = sorted_audio_streams[1]
@@ -70,9 +77,10 @@ def get_video_info(url):
         return status
 
     # Print video details
-    details = info['videoDetails']
+    details = info["videoDetails"]
     print(
-        f"\"{details['title']}\" by {details['author']}, {format(int(details['viewCount']), ',d')} views, {details['lengthSeconds']}s, {yt.publish_date.strftime('%Y-%m-%d')}")
+        f'"{details["title"]}" by {details["author"]}, {format(int(details["viewCount"]), ",d")} views, {details["lengthSeconds"]}s, {yt.publish_date.strftime("%Y-%m-%d")}'
+    )
 
     return yt
 
@@ -80,23 +88,28 @@ def get_video_info(url):
 def extract_yt_playlist_links(link):
     # Fetch and parse the webpage
     response = requests.get(link)
-    parsed_response = BeautifulSoup(response.content, "html.parser").prettify()
+    parsed_response = bs4.BeautifulSoup(response.content, "html.parser").prettify()
 
     # Extract and load the YouTube data from the parsed response
     yt_data_str = next(
-        line for line in parsed_response.replace('"', "`").split("\n") if "var ytInitialData = " in line)[23:-1]
+        line
+        for line in parsed_response.replace('"', "`").split("\n")
+        if "var ytInitialData = " in line
+    )[23:-1]
     yt_data = json.loads(yt_data_str.replace("`", '"'))
 
     # Navigate through the nested structure of the YouTube data to get the video list
-    video_list = yt_data["contents"]["twoColumnBrowseResultsRenderer"]["tabs"][0]["tabRenderer"]["content"][
-        "sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"][0]["playlistVideoListRenderer"][
-        "contents"]
+    video_list = yt_data["contents"]["twoColumnBrowseResultsRenderer"]["tabs"][0][
+        "tabRenderer"
+    ]["content"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"][
+        "contents"
+    ][0]["playlistVideoListRenderer"]["contents"]
 
     # Extract video URLs and print them
     video_urls = []
     for video in video_list:
         title = video["playlistVideoRenderer"]["title"]["runs"][0]["text"]
-        video_url = f'https://www.youtube.com/watch?v={video["playlistVideoRenderer"]["videoId"]}'
+        video_url = f"https://www.youtube.com/watch?v={video['playlistVideoRenderer']['videoId']}"
         video_urls.append(video_url)
         print(f"{title}, {video_url}")
 
@@ -106,18 +119,23 @@ def extract_yt_playlist_links(link):
 
 
 def download_webpage(url):
-    # Setup
-    wkhtmltopdf_path = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+    # Setup - find wkhtmltopdf in PATH
+    wkhtmltopdf_path = shutil.which("wkhtmltopdf")
+    if not wkhtmltopdf_path:
+        print("wkhtmltopdf not found in PATH. Please install it.")
+        return
     config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
 
     # Fetch webpage HTML and extract title
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = bs4.BeautifulSoup(response.text, "html.parser")
     title = soup.title.string if soup.title else "webpage"
     # open(f'{DIR}/latest_webpage.html', 'w', encoding='utf-8').write(soup.prettify())
 
     # Sanitize title and create output path
-    sanitized_title = "".join(c for c in title if c.isalpha() or c.isdigit() or c == ' ').rstrip()
+    sanitized_title = "".join(
+        c for c in title if c.isalpha() or c.isdigit() or c == " "
+    ).rstrip()
     output_path = os.path.join(DIR, f"{sanitized_title}.pdf")
 
     # Save webpage as PDF
@@ -131,29 +149,51 @@ def download_webpage(url):
 
 if __name__ == "__main__":
     # Setting up the root window
-    root = tk.Tk()
+    root = tkinter.Tk()
     root.title("Web Content Downloader")
     root.geometry("600x300")
     root.config(bg="#1E1E1E")
     root.resizable(width=False, height=False)
 
     # Setting up labels
-    tk.Label(root, text=" Web Content Downloader ", font="arial 20 bold", fg="#FFFFFF", bg="#464646").pack()
-    tk.Label(root, text="Paste Link(s) Here:", font="arial 15 bold", fg="Black", bg="#EC7063").place(x=5, y=50)
+    tkinter.Label(
+        root,
+        text=" Web Content Downloader ",
+        font="arial 20 bold",
+        fg="#FFFFFF",
+        bg="#464646",
+    ).pack()
+    tkinter.Label(
+        root, text="Paste Link(s) Here:", font="arial 15 bold", fg="Black", bg="#EC7063"
+    ).place(x=5, y=50)
 
     # Setting up text widget and scrollbar
-    text_widget = tk.Text(root, height=10, width=70)
+    text_widget = tkinter.Text(root, height=10, width=70)
     text_widget.place(x=5, y=90)
-    scrollbar = tk.Scrollbar(root, command=text_widget.yview)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    scrollbar = tkinter.Scrollbar(root, command=text_widget.yview)
+    scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
     text_widget.config(yscrollcommand=scrollbar.set)
 
     # Setting up buttons
     DIR = os.path.dirname(os.path.abspath(__file__))
-    tk.Button(root, text="DOWNLOAD", font="arial 15 bold", fg="white", bg="#ff0000", padx=2,
-              command=download_main).place(x=330, y=45)
-    tk.Button(root, text="OPEN DIRECTORY", font="arial 8 bold", fg="white", bg="#ff0000", padx=2,
-              command=lambda: subprocess.Popen(["explorer", DIR])).place(x=475, y=45, width=100)
+    tkinter.Button(
+        root,
+        text="DOWNLOAD",
+        font="arial 15 bold",
+        fg="white",
+        bg="#ff0000",
+        padx=2,
+        command=download_main,
+    ).place(x=330, y=45)
+    tkinter.Button(
+        root,
+        text="OPEN DIRECTORY",
+        font="arial 8 bold",
+        fg="white",
+        bg="#ff0000",
+        padx=2,
+        command=lambda: subprocess.Popen(["explorer", DIR]),
+    ).place(x=475, y=45, width=100)
 
     # Starting the main loop
     root.mainloop()

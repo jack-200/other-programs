@@ -19,7 +19,7 @@ import win32gui
 
 try:
     is_admin = ctypes.windll.shell32.IsUserAnAdmin()
-except:
+except Exception:
     is_admin = False
 
 if not is_admin:

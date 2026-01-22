@@ -52,11 +52,15 @@ def filter_by_regex():
 def copy_file_to_destination(file_names: List[str]) -> None:
     """Copies a file from source to destination if it doesn't exist in the destination."""
     global num_copied
+    dest_path = destination_path_input.get()
+    if not dest_path:
+        print("No destination path specified")
+        return
     for file_name in file_names:
-        destination_file_path = os.path.join(destination_path, os.path.basename(file_name))
+        source_file_path = os.path.join(source_path_input.get(), file_name.lstrip(os.sep))
+        destination_file_path = os.path.join(dest_path, os.path.basename(file_name))
         print(f"Destination file path: {destination_file_path}")
-        print(f"Destination path: {destination_path}")
-        print(f"File name: {file_name}")
+        print(f"Source file path: {source_file_path}")
 
         if not os.path.exists(destination_file_path):
             print(f"Copying {source_file_path} to {destination_file_path}")

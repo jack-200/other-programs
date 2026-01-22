@@ -1,7 +1,7 @@
-import collections
 import hashlib
 import io
 import os
+import shutil
 import sys
 
 try:
@@ -16,11 +16,12 @@ except ModuleNotFoundError:
 
 import numpy
 import pypdf
-from PIL import ExifTags, Image, ImageEnhance
-from pdf2image import convert_from_path
+import PIL.ExifTags
+import PIL.Image
+import PIL.ImageEnhance
+import pdf2image
 
-POPPLER_PATH = r"C:\Miscellaneous\Tools\poppler-24.08.0\Library\bin"
-is_poppler_installed = os.path.exists(POPPLER_PATH)
+
 
 
 class DummyStatusField:
@@ -51,7 +52,7 @@ def merge_pdfs(dir_path):
         reader = pypdf.PdfReader(pdf_file)
         for page in range(len(reader.pages)):
             writer.add_page(reader.pages[page])
-    result_pdf_path = f"{dir_path}\\!merged_{get_file_name(pdf_files[0])}"
+    result_pdf_path = os.path.join(dir_path, f"!merged_{get_file_name(pdf_files[0])}")
     with open(result_pdf_path, "wb") as output_pdf:
         writer.write(output_pdf)
     if status_field:
@@ -152,7 +153,7 @@ def save_page_range(path, start_page, end_page):
         reader = pypdf.PdfReader(file_path)
         for page in range(start_page - 1, end_page):
             writer.add_page(reader.pages[page])
-        with open(f"{path}\\{start_page}-{end_page} {get_file_name(file_path)}", "wb") as output_pdf:
+        with open(os.path.join(path, f"{start_page}-{end_page} {get_file_name(file_path)}"), "wb") as output_pdf:
             writer.write(output_pdf)
 
 
@@ -167,7 +168,6 @@ def resave_files(path, sanitize=False):
             writer = pypdf.PdfWriter()
             for page in reader.pages:
                 writer.add_page(page)
-            os.chmod(file_path, 0o777)
             os.remove(file_path)
             if sanitize:
                 file_path = os.path.join(get_folder_path(file_path), "document.pdf")
@@ -175,9 +175,8 @@ def resave_files(path, sanitize=False):
             with open(file_path, "wb") as pdf:
                 writer.write(pdf)
         else:
-            with Image.open(file_path) as img:
+            with PIL.Image.open(file_path) as img:
                 img_without_metadata = img.copy()
-            os.chmod(file_path, 0o777)
             os.remove(file_path)
             if sanitize:
                 file_path = os.path.join(get_folder_path(file_path), f"image.{get_file_type(file_path)}")
@@ -190,18 +189,20 @@ def resave_files(path, sanitize=False):
 
 
 def pdf_to_image(path):
-    if not is_poppler_installed:
+    if not shutil.which("pdftoppm"):
+        if status_field:
+            status_field.setText("Poppler (pdftoppm) not found in PATH.")
         return
     file_paths = index_directory(path, "pdf")
     for file in file_paths:
-        pdf_pages = convert_from_path(file, poppler_path=POPPLER_PATH)
+        pdf_pages = pdf2image.convert_from_path(file)
         for page_num, pdf_page in enumerate(pdf_pages):
             pdf_page.save(f"{strip_ext(file)} {page_num}.png")
 
 
 def image_to_pdf(path):
     for file_path in index_directory(path, file_types=["png", "jpg"]):
-        img = Image.open(file_path)
+        img = PIL.Image.open(file_path)
         img.save(f"{strip_ext(file_path)}.pdf", "PDF", resolution=img.width / 850 * 100)
 
 
@@ -214,7 +215,7 @@ def crop_images(path):
     crop_configs = {(1280, 1080): [(0, 0, 1280, 720)], (2560, 720): [(0, 0, 1280, 720), (1280, 0, 2560, 720)],
                     (3200, 1080): [(0, 0, 1920, 1080), (1920, 0, 3200, 1080)], }
     for file_path in file_paths:
-        original_image = Image.open(file_path)
+        original_image = PIL.Image.open(file_path)
         crop_areas = crop_configs.get(original_image.size)
         if crop_areas is None:
             continue
@@ -232,7 +233,7 @@ def merge_images(path):
     imgs = []
     total_width = total_height = max_width = max_height = 0
     for file_path in file_paths:
-        img = Image.open(file_path)
+        img = PIL.Image.open(file_path)
         imgs.append(img)
         width, height = img.size
         total_width += width
@@ -244,11 +245,11 @@ def merge_images(path):
     h_scaled_imgs = [numpy.array(img.convert("RGB").resize((round(max_height / img.height * img.width), max_height)))
                      for img in imgs]
     v_imgs_comb = numpy.vstack(v_scaled_imgs)
-    Image.fromarray(v_imgs_comb).save(f"{path}\\!vertical.png")
-    Image.fromarray(v_imgs_comb).convert("RGB").save(f"{path}\\!vertical.jpg")
+    PIL.Image.fromarray(v_imgs_comb).save(os.path.join(path, "!vertical.png"))
+    PIL.Image.fromarray(v_imgs_comb).convert("RGB").save(os.path.join(path, "!vertical.jpg"))
     h_imgs_comb = numpy.hstack(h_scaled_imgs)
-    Image.fromarray(h_imgs_comb).save(f"{path}\\!horizontal.png")
-    Image.fromarray(h_imgs_comb).convert("RGB").save(f"{path}\\!horizontal.jpg")
+    PIL.Image.fromarray(h_imgs_comb).save(os.path.join(path, "!horizontal.png"))
+    PIL.Image.fromarray(h_imgs_comb).convert("RGB").save(os.path.join(path, "!horizontal.jpg"))
 
 
 def convert_between_png_jpg(directory):
@@ -256,14 +257,14 @@ def convert_between_png_jpg(directory):
         file_type = get_file_type(image_path)
         new_file_path = strip_ext(image_path)
         if file_type == "png":
-            Image.open(image_path).convert("RGB").save(f"{new_file_path}.jpg")
+            PIL.Image.open(image_path).convert("RGB").save(f"{new_file_path}.jpg")
         else:
-            Image.open(image_path).save(f"{new_file_path}.png")
+            PIL.Image.open(image_path).save(f"{new_file_path}.png")
 
 
 def img_to_ico(path):
     for file_path in get_all_images(path):
-        img = Image.open(file_path)
+        img = PIL.Image.open(file_path)
         img.save(f"{strip_ext(file_path)}.ico")
 
 
@@ -279,10 +280,10 @@ def print_info(directory):
             size_str = f"{formatted_size} bytes ({size / (1024 * 1024):.2f} MB)"
         output += f"\n{index + 1}. {path}\n\tFile Size: {size_str}"
         if path.endswith((".png", ".jpg", ".jpeg")):
-            img = Image.open(path)
+            img = PIL.Image.open(path)
             output += f"\tWidth, Height, Mode = ({img.width}, {img.height}, {img.mode}) {img.format}\n"
             for tag_id, value in img.getexif().items():
-                tag = str(ExifTags.TAGS.get(tag_id, tag_id))
+                tag = str(PIL.ExifTags.TAGS.get(tag_id, tag_id))
                 output += f"\t{tag.ljust(25)}: {value}\n"
         elif path.endswith(".pdf"):
             with open(path, "rb") as f:
@@ -315,9 +316,10 @@ def duplicate_detector(directory_path):
 
 
 def get_image_colors(directory_path):
+    import collections
     results = []
     for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
-        img = Image.open(full_file_path)
+        img = PIL.Image.open(full_file_path)
         if img.mode == "RGBA":
             colors = [pixel[:3] for pixel in img.getdata() if pixel[3] == 255]
         else:
@@ -337,7 +339,7 @@ def get_image_colors(directory_path):
 
 def crop_by_90(directory_path):
     for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
-        img = Image.open(full_file_path)
+        img = PIL.Image.open(full_file_path)
         width, height = img.size
         new_width = round(width * 0.9)
         new_height = round(height * 0.9)
@@ -357,7 +359,7 @@ def convert_svg_and_webp_to_png(directory_path):
                 continue
             cairosvg.svg2png(url=full_file_path, write_to=output_path)
         elif full_file_path.endswith(".webp"):
-            img = Image.open(full_file_path)
+            img = PIL.Image.open(full_file_path)
             img.save(output_path, "PNG")
 
 
@@ -369,8 +371,8 @@ def enhance_contrast(dir_path):
     pdf_paths = index_directory(dir_path, "pdf")
     for path in pdf_paths:
         enhanced_images = []
-        for image in convert_from_path(path, poppler_path=POPPLER_PATH):
-            enhanced_image = ImageEnhance.Contrast(image).enhance(1.25)
+        for image in pdf2image.convert_from_path(path):
+            enhanced_image = PIL.ImageEnhance.Contrast(image).enhance(1.25)
             byte_io = io.BytesIO()
             enhanced_image.save(byte_io, format="PNG")
             enhanced_images.append(byte_io.getvalue())
@@ -389,12 +391,12 @@ def rename_files(dir_path):
     temp_suffix = "_temp"
     temp_files = []
     for i, file in enumerate(files, start=1):
-        temp_name = f"{dir_path}\\{temp_suffix}-{i}.{get_file_type(file)}"
+        temp_name = os.path.join(dir_path, f"{temp_suffix}-{i}.{get_file_type(file)}")
         os.rename(file, temp_name)
         temp_files.append(temp_name)
     for i, temp_file in enumerate(temp_files, start=1):
         padded_num = str(i).zfill(padding)
-        final_name = f"{dir_path}\\{base_name}-{padded_num}.{get_file_type(temp_file)}"
+        final_name = os.path.join(dir_path, f"{base_name}-{padded_num}.{get_file_type(temp_file)}")
         os.rename(temp_file, final_name)
 
 
@@ -491,10 +493,10 @@ def crop_solid_edges(directory_path):
             break
 
         left = 0
-        for l in range(width):
+        for left_x in range(width):
             for y in range(height):
-                if not is_similar(pixels[l, y], left_ref):
-                    left = l
+                if not is_similar(pixels[left_x, y], left_ref):
+                    left = left_x
                     break
             else:
                 continue
@@ -514,7 +516,7 @@ def crop_solid_edges(directory_path):
 
     results = []
     for file_path in index_directory(directory_path, file_types=["png", "jpg", "jpeg"]):
-        img = Image.open(file_path).convert("RGB")
+        img = PIL.Image.open(file_path).convert("RGB")
         crop_box = find_crop_edges(img)
         cropped = img.crop(crop_box)
         out_path = f"{strip_ext(file_path)}_cropped.{get_file_type(file_path)}"

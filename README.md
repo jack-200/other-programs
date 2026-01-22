@@ -13,7 +13,7 @@ A collection of standalone programs offering tools for file management, system o
 
 ---
 
-## 📄 [PDF and Image Tools](pdf_and_image_tools/main.pyw)
+## 📄 [PDF and Image Tools](pdf-and-image-tools/main.pyw)
 
 ![PDF and Image Tools Interface](https://github.com/user-attachments/assets/ecf2f86c-0b00-4cc2-897b-1a981e808317)
 
@@ -63,13 +63,15 @@ A comprehensive GUI application for PDF and image manipulation with various proc
 
 - Files are processed in alphabetical order
 - The variable `PATH_TO_FOLDER` points to the source directory. It defaults to the `Downloads/PDF-IMG` folder
-- The variable `POPPLER_PATH` must be set to the `bin` folder of Poppler. Instructions to install Poppler can be found in the README here: https://github.com/Belval/pdf2image
+- **Poppler is required** for the **PDF to Image** and **Enhance Contrast** features. Install it as follows:
+  - **Windows**: Download the latest binary from [github.com/oschwartz10612/poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases/), extract it, and add the `bin` folder to your System PATH environment variable.
+  - **macOS**: `brew install poppler`
 - `cairosvg` and `img2pdf` require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs
 - `PyQt5` requires the "Desktop development with C++" workload from the Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 ---
 
-## 🌐 [Web Content Downloader](web_content_downloader/main.py)
+## 🌐 [Web Content Downloader](web-content-downloader/main.py)
 
 ![Web Content Downloader Interface](https://github.com/jack-200/other-programs/assets/86848773/f61602b8-f7b5-4e7f-a7c1-36cd3c115d47)
 ![Web Content Downloader Example](https://github.com/jack-200/Other-Programs/assets/86848773/3933d1f2-21cb-4f3e-92cc-15de7be5c46b)
@@ -91,7 +93,7 @@ Simple standalone tool to download YouTube videos as MP4 and webpages as PDF.
 
 ---
 
-## 🪟 [Window Manager](window_manager/main.pyw)
+## 🪟 [Window Manager](window-manager/main.pyw)
 
 ![Window Manager Interface](https://github.com/jack-200/other-programs/assets/86848773/fdedc72a-0016-46e0-8cb8-ab6aac16fd14)
 
@@ -111,13 +113,13 @@ A tool for managing windows on the desktop with comprehensive window control fun
 This program can be converted to an executable using PyInstaller:
 
 ```bash
-cd window_manager
+cd window-manager
 pyinstaller --onefile --windowed main.pyw
 ```
 
 ---
 
-## 📁 [Directory Filter](directory_filter/main.pyw)
+## 📁 [Directory Filter](directory-filter/main.pyw)
 
 ![Directory Filter Interface](https://github.com/jack-200/other-programs/assets/86848773/4d4429af-28c5-4db4-a068-150aab34edf2)
 
@@ -134,7 +136,7 @@ A tool for filtering files in a directory with multiple filtering options and fi
 
 ---
 
-## 📊 [Report Generator](report_generator/main.ps1)
+## 📊 [Report Generator](report-generator/main.ps1)
 
 ![Report Generator Output](https://github.com/jack-200/other-programs/assets/86848773/43e68edb-0c8f-4773-a053-147f9e04e3c2)
 
@@ -162,26 +164,36 @@ This PowerShell script generates comprehensive system reports and saves them in 
 ### 💾 Installation
 
 ```bash
-# Create Virtual Environment
-python -m venv venv
+# 1. Install uv
+# macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Activate Environment and Install Dependencies
-venv\Scripts\activate && python -m pip install --upgrade -r requirements.txt
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 2. Configure Environment & Dependencies
+uv venv
+uv pip install -r requirements.txt
 ```
 
 ### ▶️ Running the Applications
 
+To run the applications after setup, double-click the `.command` (macOS) or `.vbs` (Windows) files in the `shortcuts/` directory.
+
+#### Command Line Usage
+
+Use `uv run` to automatically create the environment, install dependencies, and run the script.
+
 ```bash
 # PDF and Image Tools
-venv\Scripts\activate && python pdf_and_image_tools\main.pyw
+uv run pdf-and-image-tools/main.pyw
 
 # Web Content Downloader
-venv\Scripts\activate && python web_content_downloader\main.py
+uv run web-content-downloader/main.py
 
 # Directory Filter
-venv\Scripts\activate && python directory_filter\main.pyw
+uv run directory-filter/main.pyw
 
 # Window Manager
-venv\Scripts\activate && python window_manager\main.pyw
+uv run window-manager/main.pyw
 ```
-

@@ -46,8 +46,8 @@ A comprehensive GUI application for PDF and image manipulation with various proc
 
 | Feature                | Description                                                                          |
 | ---------------------- | ------------------------------------------------------------------------------------ |
-| **Resave Files**       | Resaves PDFs and images, stripping metadata and potentially reducing file size       |
-| **Sanitize**           | Strips metadata and sets a generic filename                                          |
+| **Resave Files**       | Performs lossless optimization and strips metadata from PDFs and images              |
+| **Sanitize**           | Strips metadata and sets a generic filename (`document.pdf` or `image.ext`)          |
 | **Print Metadata**     | Prints out the metadata for all image and PDF files                                  |
 | **Rename Files**       | Renames all files in a directory with a specified base name and sequential numbering |
 | **Duplicate Detector** | Scans a directory and identifies any duplicate files using MD5 hashing               |

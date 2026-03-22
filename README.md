@@ -163,26 +163,21 @@ This PowerShell script generates comprehensive system reports and saves them in 
 
 ### 💾 Installation
 
-```bash
-# 1. Install uv
-# macOS
-curl -LsSf https://astral.sh/uv/install.sh | sh
+1. **Install uv**:
+   - **macOS/Linux**: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+   - **Windows**: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
-# Windows
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# 2. Configure Environment & Dependencies
-uv venv
-uv pip install -r requirements.txt
-```
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jack-200/other-programs.git
+   cd other-programs
+   ```
 
 ### ▶️ Running the Applications
 
-To run the applications after setup, double-click the `.command` (macOS) or `.vbs` (Windows) files in the `shortcuts/` directory.
+There is no manual setup or environment configuration required. Simply use `uv run` to automatically create the environment, install dependencies, and run any script.
 
 #### Command Line Usage
-
-Use `uv run` to automatically create the environment, install dependencies, and run the script.
 
 ```bash
 # PDF and Image Tools
@@ -197,3 +192,8 @@ uv run directory-filter/main.pyw
 # Window Manager
 uv run window-manager/main.pyw
 ```
+
+#### GUI Shortcuts
+
+On macOS, double-click the `.command` files in `shortcuts/`.
+On Windows, double-click the `.vbs` files in `shortcuts/`.

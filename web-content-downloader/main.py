@@ -11,6 +11,9 @@ import pytube
 import requests
 
 
+import sys
+
+
 def download_main():
     # Extract video URLs from the text widget
     video_urls = [
@@ -185,6 +188,13 @@ if __name__ == "__main__":
         padx=2,
         command=download_main,
     ).place(x=330, y=45)
+    if sys.platform == "darwin":
+        opener = "open"
+    elif sys.platform == "win32":
+        opener = "explorer"
+    else:
+        opener = "xdg-open"
+
     tkinter.Button(
         root,
         text="OPEN DIRECTORY",
@@ -192,7 +202,7 @@ if __name__ == "__main__":
         fg="white",
         bg="#ff0000",
         padx=2,
-        command=lambda: subprocess.Popen(["explorer", DIR]),
+        command=lambda: subprocess.Popen([opener, DIR]),
     ).place(x=475, y=45, width=100)
 
     # Starting the main loop

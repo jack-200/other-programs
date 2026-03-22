@@ -81,7 +81,7 @@ def index_directory(source_path: str) -> List[str]:
     for subdir, dirs, files in os.walk(source_path):
         # Handle empty directories
         if not dirs and not files and subdir != source_path:
-            paths.append(subdir[path_len:] + "\\")
+            paths.append(subdir[path_len:] + os.sep)
 
         # Collect file paths
         for file in files:

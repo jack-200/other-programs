@@ -22,8 +22,6 @@ import PIL.ImageEnhance
 import pdf2image
 
 
-
-
 class DummyStatusField:
     def setText(self, text):
         pass
@@ -77,11 +75,15 @@ def stitch_pdfs(dir_path):
                 max_width = max(max_width, width)
                 max_height = max(max_height, height)
             base_path_and_name = strip_ext(file_name)
-            vertical_pdf = pypdf.PageObject.create_blank_page(width=max_width, height=total_height)
+            vertical_pdf = pypdf.PageObject.create_blank_page(
+                width=max_width, height=total_height
+            )
             for i, page in enumerate(pages):
                 vertical_pdf.merge_page(page, expand=True)
                 if i != len(pages) - 1:
-                    vertical_pdf.add_transformation(pypdf.Transformation().translate(ty=page.mediabox.height))
+                    vertical_pdf.add_transformation(
+                        pypdf.Transformation().translate(ty=page.mediabox.height)
+                    )
             output = pypdf.PdfWriter()
             output.add_page(vertical_pdf)
             vertical_path = f"{base_path_and_name}_vertical.pdf"
@@ -89,18 +91,24 @@ def stitch_pdfs(dir_path):
                 output.write(vertical_out)
             if status_field:
                 status_field.setText(f"Created vertical stitched PDF: {vertical_path}")
-            horizontal_pdf = pypdf.PageObject.create_blank_page(width=total_width, height=max_height)
+            horizontal_pdf = pypdf.PageObject.create_blank_page(
+                width=total_width, height=max_height
+            )
             for i, page in enumerate(pages[::-1]):
                 horizontal_pdf.merge_page(page, expand=True)
                 if i != len(pages) - 1:
-                    horizontal_pdf.add_transformation(pypdf.Transformation().translate(tx=page.mediabox.width))
+                    horizontal_pdf.add_transformation(
+                        pypdf.Transformation().translate(tx=page.mediabox.width)
+                    )
             output = pypdf.PdfWriter()
             output.add_page(horizontal_pdf)
             horizontal_path = f"{base_path_and_name}_horizontal.pdf"
             with open(horizontal_path, "wb") as horizontal_out:
                 output.write(horizontal_out)
             if status_field:
-                status_field.setText(f"Created horizontal stitched PDF: {horizontal_path}")
+                status_field.setText(
+                    f"Created horizontal stitched PDF: {horizontal_path}"
+                )
 
 
 def encrypt_pdf(dir_path):
@@ -128,7 +136,12 @@ def save_page_range(path, start_page, end_page):
         return
     range_input = range_input.split("-")
     if len(range_input) > 1:
-        if range_input[0] and int(range_input[0]) >= 0 and range_input[1] and int(range_input[1]) > 0:
+        if (
+            range_input[0]
+            and int(range_input[0]) >= 0
+            and range_input[1]
+            and int(range_input[1]) > 0
+        ):
             start_page = range_input[0]
             end_page = range_input[1]
         elif range_input[0] == "":
@@ -153,7 +166,10 @@ def save_page_range(path, start_page, end_page):
         reader = pypdf.PdfReader(file_path)
         for page in range(start_page - 1, end_page):
             writer.add_page(reader.pages[page])
-        with open(os.path.join(path, f"{start_page}-{end_page} {get_file_name(file_path)}"), "wb") as output_pdf:
+        with open(
+            os.path.join(path, f"{start_page}-{end_page} {get_file_name(file_path)}"),
+            "wb",
+        ) as output_pdf:
             writer.write(output_pdf)
 
 
@@ -179,7 +195,9 @@ def resave_files(path, sanitize=False):
                 img_without_metadata = img.copy()
             os.remove(file_path)
             if sanitize:
-                file_path = os.path.join(get_folder_path(file_path), f"image.{get_file_type(file_path)}")
+                file_path = os.path.join(
+                    get_folder_path(file_path), f"image.{get_file_type(file_path)}"
+                )
             img_without_metadata.save(file_path)
         new_size = os.path.getsize(file_path) / 1024
         pct_chg = f"{round(((new_size - org_size) / org_size) * 100, 1)}%"
@@ -212,8 +230,11 @@ def sanitize(path):
 
 def crop_images(path):
     file_paths = index_directory(path, file_types=["png", "jpg"])
-    crop_configs = {(1280, 1080): [(0, 0, 1280, 720)], (2560, 720): [(0, 0, 1280, 720), (1280, 0, 2560, 720)],
-                    (3200, 1080): [(0, 0, 1920, 1080), (1920, 0, 3200, 1080)], }
+    crop_configs = {
+        (1280, 1080): [(0, 0, 1280, 720)],
+        (2560, 720): [(0, 0, 1280, 720), (1280, 0, 2560, 720)],
+        (3200, 1080): [(0, 0, 1920, 1080), (1920, 0, 3200, 1080)],
+    }
     for file_path in file_paths:
         original_image = PIL.Image.open(file_path)
         crop_areas = crop_configs.get(original_image.size)
@@ -221,14 +242,18 @@ def crop_images(path):
             continue
         for index, crop_area in enumerate(crop_areas, 1):
             cropped_image = original_image.crop(box=crop_area)
-            cropped_image.save(f"{strip_ext(file_path)} !CROPPED {index}.{get_file_type(file_path)}")
+            cropped_image.save(
+                f"{strip_ext(file_path)} !CROPPED {index}.{get_file_type(file_path)}"
+            )
 
 
 def merge_images(path):
     file_paths = index_directory(path, file_types=["jpeg", "jpg", "png"])
     if len(file_paths) == 1:
         if status_field:
-            status_field.setText("Failed to merge images: need more than one image to merge")
+            status_field.setText(
+                "Failed to merge images: need more than one image to merge"
+            )
         return
     imgs = []
     total_width = total_height = max_width = max_height = 0
@@ -240,16 +265,32 @@ def merge_images(path):
         total_height += height
         max_width = max(max_width, width)
         max_height = max(max_height, height)
-    v_scaled_imgs = [numpy.array(img.convert("RGB").resize((max_width, round(max_width / img.width * img.height)))) for
-                     img in imgs]
-    h_scaled_imgs = [numpy.array(img.convert("RGB").resize((round(max_height / img.height * img.width), max_height)))
-                     for img in imgs]
+    v_scaled_imgs = [
+        numpy.array(
+            img.convert("RGB").resize(
+                (max_width, round(max_width / img.width * img.height))
+            )
+        )
+        for img in imgs
+    ]
+    h_scaled_imgs = [
+        numpy.array(
+            img.convert("RGB").resize(
+                (round(max_height / img.height * img.width), max_height)
+            )
+        )
+        for img in imgs
+    ]
     v_imgs_comb = numpy.vstack(v_scaled_imgs)
     PIL.Image.fromarray(v_imgs_comb).save(os.path.join(path, "!vertical.png"))
-    PIL.Image.fromarray(v_imgs_comb).convert("RGB").save(os.path.join(path, "!vertical.jpg"))
+    PIL.Image.fromarray(v_imgs_comb).convert("RGB").save(
+        os.path.join(path, "!vertical.jpg")
+    )
     h_imgs_comb = numpy.hstack(h_scaled_imgs)
     PIL.Image.fromarray(h_imgs_comb).save(os.path.join(path, "!horizontal.png"))
-    PIL.Image.fromarray(h_imgs_comb).convert("RGB").save(os.path.join(path, "!horizontal.jpg"))
+    PIL.Image.fromarray(h_imgs_comb).convert("RGB").save(
+        os.path.join(path, "!horizontal.jpg")
+    )
 
 
 def convert_between_png_jpg(directory):
@@ -308,7 +349,9 @@ def duplicate_detector(directory_path):
                 duplicates.append((file_hashes[file_content_hash], full_file_path))
             else:
                 file_hashes[file_content_hash] = full_file_path
-    result_msg = ("Duplicate files found:\n" if any(duplicates) else "No duplicate files found.")
+    result_msg = (
+        "Duplicate files found:\n" if any(duplicates) else "No duplicate files found."
+    )
     for original, duplicate in duplicates:
         result_msg += f"\nOriginal: {original}\nDuplicate: {duplicate}\n"
     if status_field:
@@ -317,28 +360,43 @@ def duplicate_detector(directory_path):
 
 def get_image_colors(directory_path):
     import collections
+
     results = []
-    for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
+    for full_file_path in index_directory(
+        directory_path, file_types=["jpeg", "jpg", "png"]
+    ):
         img = PIL.Image.open(full_file_path)
         if img.mode == "RGBA":
             colors = [pixel[:3] for pixel in img.getdata() if pixel[3] == 255]
         else:
             colors = [pixel[:3] for pixel in img.getdata()]
         avg_color = numpy.mean(colors, axis=0)
-        avg_color_hex = "#%02x%02x%02x" % (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]),)
+        avg_color_hex = "#%02x%02x%02x" % (
+            int(avg_color[0]),
+            int(avg_color[1]),
+            int(avg_color[2]),
+        )
         color_counter = collections.Counter(colors)
         common_colors = color_counter.most_common(3)
-        common_colors_hex = [(("#%02x%02x%02x" % (color[0][0], color[0][1], color[0][2])), color[1]) for color in
-                             common_colors]
+        common_colors_hex = [
+            (("#%02x%02x%02x" % (color[0][0], color[0][1], color[0][2])), color[1])
+            for color in common_colors
+        ]
         avg_color_str = f"Average color: {avg_color_hex}"
-        common_colors_str = "\n".join([f"Color: {color[0]}, Frequency: {color[1]}" for color in common_colors_hex])
-        results.append(f"Filename: {full_file_path}\n" + avg_color_str + "\n" + common_colors_str)
+        common_colors_str = "\n".join(
+            [f"Color: {color[0]}, Frequency: {color[1]}" for color in common_colors_hex]
+        )
+        results.append(
+            f"Filename: {full_file_path}\n" + avg_color_str + "\n" + common_colors_str
+        )
     if status_field:
         status_field.setText("\n\n".join(results))
 
 
 def crop_by_90(directory_path):
-    for full_file_path in index_directory(directory_path, file_types=["jpeg", "jpg", "png"]):
+    for full_file_path in index_directory(
+        directory_path, file_types=["jpeg", "jpg", "png"]
+    ):
         img = PIL.Image.open(full_file_path)
         width, height = img.size
         new_width = round(width * 0.9)
@@ -348,7 +406,9 @@ def crop_by_90(directory_path):
         right = (width + new_width) / 2
         bottom = (height + new_height) / 2
         img_cropped = img.crop((left, top, right, bottom))
-        img_cropped.save(f"{strip_ext(full_file_path)} !CROPPED 90.{get_file_type(full_file_path)}")
+        img_cropped.save(
+            f"{strip_ext(full_file_path)} !CROPPED 90.{get_file_type(full_file_path)}"
+        )
 
 
 def convert_svg_and_webp_to_png(directory_path):
@@ -396,7 +456,9 @@ def rename_files(dir_path):
         temp_files.append(temp_name)
     for i, temp_file in enumerate(temp_files, start=1):
         padded_num = str(i).zfill(padding)
-        final_name = os.path.join(dir_path, f"{base_name}-{padded_num}.{get_file_type(temp_file)}")
+        final_name = os.path.join(
+            dir_path, f"{base_name}-{padded_num}.{get_file_type(temp_file)}"
+        )
         os.rename(temp_file, final_name)
 
 
@@ -434,8 +496,12 @@ def index_directory(path, file_types=None):
 
 def get_all_images(directory_path):
     image_extensions = (".png", ".jpg", ".jpeg")
-    image_files = [os.path.join(root, file) for root, _, files in os.walk(directory_path) for file in files if
-                   os.path.splitext(file)[1].lower() in image_extensions]
+    image_files = [
+        os.path.join(root, file)
+        for root, _, files in os.walk(directory_path)
+        for file in files
+        if os.path.splitext(file)[1].lower() in image_extensions
+    ]
     return image_files
 
 

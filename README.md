@@ -67,7 +67,6 @@ A comprehensive GUI application for PDF and image manipulation with various proc
   - **Windows**: Download the latest binary from [github.com/oschwartz10612/poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases/), extract it, and add the `bin` folder to your System PATH environment variable.
   - **macOS**: `brew install poppler`
 - `cairosvg` and `img2pdf` require additional dependencies. They enable the conversion of SVG files to PNG and increase the contrast of PDFs
-- `PyQt5` requires the "Desktop development with C++" workload from the Microsoft C++ Build Tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 ---
 

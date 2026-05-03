@@ -2,8 +2,8 @@ import json
 import os
 import sys
 
-import PyQt5.QtCore
-import PyQt5.QtWidgets
+import PySide6.QtCore
+import PySide6.QtWidgets
 
 import core as c
 
@@ -44,13 +44,13 @@ def input_box(row_spacing, col_spacing, col_spacing_actual):
         current_input_value = text
         c.input_text = text
 
-    box = PyQt5.QtWidgets.QLineEdit(widget)
+    box = PySide6.QtWidgets.QLineEdit(widget)
     box.textChanged.connect(update_input_value)
     x = (3 - 1) * col_spacing
     y = (2 - 1) * row_spacing
     box.move(x, y)
     box.resize(BUTTON_WIDTH * 2 + col_spacing_actual, BUTTON_HEIGHT)
-    labels = PyQt5.QtWidgets.QFormLayout()
+    labels = PySide6.QtWidgets.QFormLayout()
     labels.addRow("Input Box: ", box)
     box.show()
 
@@ -59,7 +59,7 @@ def input_box(row_spacing, col_spacing, col_spacing_actual):
 def create_button(label, row, col, action, button_type):
     global widget
     bg_color = COLOR_CODES.get(button_type, "#aaaaaa")
-    button = PyQt5.QtWidgets.QPushButton(widget)
+    button = PySide6.QtWidgets.QPushButton(widget)
     button.setText(label)
     button.clicked.connect(action)
     button.setStyleSheet(f"background-color: {bg_color}; color: black;")
@@ -69,14 +69,14 @@ def create_button(label, row, col, action, button_type):
 
 
 def create_color_legend_widget():
-    key_widget = PyQt5.QtWidgets.QGroupBox("Color Key")
-    layout = PyQt5.QtWidgets.QHBoxLayout()
+    key_widget = PySide6.QtWidgets.QGroupBox("Color Key")
+    layout = PySide6.QtWidgets.QHBoxLayout()
     for description, color in COLOR_CODES.items():
-        label = PyQt5.QtWidgets.QLabel(description)
+        label = PySide6.QtWidgets.QLabel(description)
         label.setStyleSheet(
             f"background-color: {color}; color: black; font-family: Helvetica; font-size: 10pt;"
         )
-        label.setAlignment(PyQt5.QtCore.Qt.AlignmentFlag.AlignCenter)
+        label.setAlignment(PySide6.QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
     key_widget.setLayout(layout)
     key_widget.setFixedHeight(50)
@@ -101,8 +101,8 @@ def save_last_dir(path):
 # Main Application Setup
 def run_app():
     global widget, status_field, current_input_value, target_directory
-    app = PyQt5.QtWidgets.QApplication(sys.argv)
-    widget = PyQt5.QtWidgets.QWidget()
+    app = PySide6.QtWidgets.QApplication(sys.argv)
+    widget = PySide6.QtWidgets.QWidget()
     widget.setWindowTitle("PDF and Image Tools")
 
     fixed_width = 5 * COL_SPACING - SPACING
@@ -178,15 +178,15 @@ def run_app():
 
     # Input Box and Layout
     input_box(ROW_SPACING, COL_SPACING, SPACING)
-    layout = PyQt5.QtWidgets.QVBoxLayout(widget)
+    layout = PySide6.QtWidgets.QVBoxLayout(widget)
 
     last_dir = load_last_dir()
     target_directory = last_dir if last_dir else c.ensure_folder("")
 
-    status_field = PyQt5.QtWidgets.QTextEdit("Program Idle")
+    status_field = PySide6.QtWidgets.QTextEdit("Program Idle")
     c.status_field = status_field
 
-    dir_input = PyQt5.QtWidgets.QLineEdit()
+    dir_input = PySide6.QtWidgets.QLineEdit()
     dir_input.setText(target_directory)
     dir_input.setPlaceholderText("Target Directory")
     dir_input.setFixedWidth(300)
@@ -202,16 +202,16 @@ def run_app():
 
     color_key_widget = create_color_legend_widget()
 
-    dir_row_layout = PyQt5.QtWidgets.QHBoxLayout()
+    dir_row_layout = PySide6.QtWidgets.QHBoxLayout()
     dir_row_layout.addWidget(dir_input)
     dir_row_layout.addStretch()
     dir_row_layout.addWidget(color_key_widget)
 
-    spacer = PyQt5.QtWidgets.QSpacerItem(
+    spacer = PySide6.QtWidgets.QSpacerItem(
         10,
         5 * ROW_SPACING,
-        PyQt5.QtWidgets.QSizePolicy.Minimum,
-        PyQt5.QtWidgets.QSizePolicy.Fixed,
+        PySide6.QtWidgets.QSizePolicy.Policy.Minimum,
+        PySide6.QtWidgets.QSizePolicy.Policy.Fixed,
     )
     layout.addSpacerItem(spacer)
     layout.addWidget(status_field)
@@ -219,4 +219,4 @@ def run_app():
 
     widget.setLayout(layout)
     widget.show()
-    app.exec_()
+    app.exec()

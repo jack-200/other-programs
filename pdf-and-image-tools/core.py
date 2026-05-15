@@ -50,7 +50,7 @@ def merge_pdfs(dir_path):
         reader = pypdf.PdfReader(pdf_file)
         for page in range(len(reader.pages)):
             writer.add_page(reader.pages[page])
-    result_pdf_path = os.path.join(dir_path, f"!merged_{get_file_name(pdf_files[0])}")
+    result_pdf_path = os.path.join(dir_path, f"_merged_{get_file_name(pdf_files[0])}")
     with open(result_pdf_path, "wb") as output_pdf:
         writer.write(output_pdf)
     if status_field:
@@ -86,7 +86,10 @@ def stitch_pdfs(dir_path):
                     )
             output = pypdf.PdfWriter()
             output.add_page(vertical_pdf)
-            vertical_path = f"{base_path_and_name}_vertical.pdf"
+            vertical_path = os.path.join(
+                get_folder_path(file_name),
+                f"_v_stitch_{strip_ext(get_file_name(file_name))}.pdf",
+            )
             with open(vertical_path, "wb") as vertical_out:
                 output.write(vertical_out)
             if status_field:
@@ -102,7 +105,10 @@ def stitch_pdfs(dir_path):
                     )
             output = pypdf.PdfWriter()
             output.add_page(horizontal_pdf)
-            horizontal_path = f"{base_path_and_name}_horizontal.pdf"
+            horizontal_path = os.path.join(
+                get_folder_path(file_name),
+                f"_h_stitch_{strip_ext(get_file_name(file_name))}.pdf",
+            )
             with open(horizontal_path, "wb") as horizontal_out:
                 output.write(horizontal_out)
             if status_field:
@@ -123,7 +129,10 @@ def encrypt_pdf(dir_path):
             writer = pypdf.PdfWriter()
             writer.append_pages_from_reader(reader)
             writer.encrypt(user_password=encryption_key)
-            output_path = f"{strip_ext(pdf_path)}_encrypted.pdf"
+            output_path = os.path.join(
+                get_folder_path(pdf_path),
+                f"_encrypted_{strip_ext(get_file_name(pdf_path))}.pdf",
+            )
             with open(output_path, "wb") as encrypted_pdf:
                 writer.write(encrypted_pdf)
             if status_field:
@@ -162,12 +171,18 @@ def save_page_range(path, start_page, end_page):
                 end_page = len(end_page.pages)
         start_page = int(start_page)
         end_page = int(end_page)
+        padding = get_padding(total_pages)
+        padded_start = str(start_page).zfill(padding)
+        padded_end = str(end_page).zfill(padding)
         writer = pypdf.PdfWriter()
         reader = pypdf.PdfReader(file_path)
         for page in range(start_page - 1, end_page):
             writer.add_page(reader.pages[page])
         with open(
-            os.path.join(path, f"{start_page}-{end_page} {get_file_name(file_path)}"),
+            os.path.join(
+                path,
+                f"_range_{padded_start}-{padded_end}_{get_file_name(file_path)}",
+            ),
             "wb",
         ) as output_pdf:
             writer.write(output_pdf)
@@ -214,14 +229,24 @@ def pdf_to_image(path):
     file_paths = index_directory(path, "pdf")
     for file in file_paths:
         pdf_pages = pdf2image.convert_from_path(file)
-        for page_num, pdf_page in enumerate(pdf_pages):
-            pdf_page.save(f"{strip_ext(file)} {page_num}.png")
+        padding = get_padding(len(pdf_pages))
+        for page_num, pdf_page in enumerate(pdf_pages, start=1):
+            padded_num = str(page_num).zfill(padding)
+            pdf_page.save(
+                os.path.join(
+                    path, f"_img_{strip_ext(get_file_name(file))} {padded_num}.png"
+                )
+            )
 
 
 def image_to_pdf(path):
     for file_path in index_directory(path, file_types=["png", "jpg"]):
         img = PIL.Image.open(file_path)
-        img.save(f"{strip_ext(file_path)}.pdf", "PDF", resolution=img.width / 850 * 100)
+        img.save(
+            os.path.join(path, f"_pdf_{strip_ext(get_file_name(file_path))}.pdf"),
+            "PDF",
+            resolution=img.width / 850 * 100,
+        )
 
 
 def sanitize(path):
@@ -240,10 +265,15 @@ def crop_images(path):
         crop_areas = crop_configs.get(original_image.size)
         if crop_areas is None:
             continue
+        padding = get_padding(len(crop_areas))
         for index, crop_area in enumerate(crop_areas, 1):
             cropped_image = original_image.crop(box=crop_area)
+            padded_index = str(index).zfill(padding)
             cropped_image.save(
-                f"{strip_ext(file_path)} !CROPPED {index}.{get_file_type(file_path)}"
+                os.path.join(
+                    path,
+                    f"_crop_{strip_ext(get_file_name(file_path))}_{padded_index}.{get_file_type(file_path)}",
+                )
             )
 
 
@@ -282,14 +312,14 @@ def merge_images(path):
         for img in imgs
     ]
     v_imgs_comb = numpy.vstack(v_scaled_imgs)
-    PIL.Image.fromarray(v_imgs_comb).save(os.path.join(path, "!vertical.png"))
+    PIL.Image.fromarray(v_imgs_comb).save(os.path.join(path, "_v_merge.png"))
     PIL.Image.fromarray(v_imgs_comb).convert("RGB").save(
-        os.path.join(path, "!vertical.jpg")
+        os.path.join(path, "_v_merge.jpg")
     )
     h_imgs_comb = numpy.hstack(h_scaled_imgs)
-    PIL.Image.fromarray(h_imgs_comb).save(os.path.join(path, "!horizontal.png"))
+    PIL.Image.fromarray(h_imgs_comb).save(os.path.join(path, "_h_merge.png"))
     PIL.Image.fromarray(h_imgs_comb).convert("RGB").save(
-        os.path.join(path, "!horizontal.jpg")
+        os.path.join(path, "_h_merge.jpg")
     )
 
 
@@ -298,15 +328,23 @@ def convert_between_png_jpg(directory):
         file_type = get_file_type(image_path)
         new_file_path = strip_ext(image_path)
         if file_type == "png":
-            PIL.Image.open(image_path).convert("RGB").save(f"{new_file_path}.jpg")
+            PIL.Image.open(image_path).convert("RGB").save(
+                os.path.join(
+                    directory, f"_conv_{strip_ext(get_file_name(image_path))}.jpg"
+                )
+            )
         else:
-            PIL.Image.open(image_path).save(f"{new_file_path}.png")
+            PIL.Image.open(image_path).save(
+                os.path.join(
+                    directory, f"_conv_{strip_ext(get_file_name(image_path))}.png"
+                )
+            )
 
 
 def img_to_ico(path):
     for file_path in get_all_images(path):
         img = PIL.Image.open(file_path)
-        img.save(f"{strip_ext(file_path)}.ico")
+        img.save(os.path.join(path, f"_ico_{strip_ext(get_file_name(file_path))}.ico"))
 
 
 def print_info(directory):
@@ -407,7 +445,10 @@ def crop_by_90(directory_path):
         bottom = (height + new_height) / 2
         img_cropped = img.crop((left, top, right, bottom))
         img_cropped.save(
-            f"{strip_ext(full_file_path)} !CROPPED 90.{get_file_type(full_file_path)}"
+            os.path.join(
+                directory_path,
+                f"_crop90_{strip_ext(get_file_name(full_file_path))}.{get_file_type(full_file_path)}",
+            )
         )
 
 
@@ -420,7 +461,13 @@ def convert_svg_and_webp_to_png(directory_path):
             cairosvg.svg2png(url=full_file_path, write_to=output_path)
         elif full_file_path.endswith(".webp"):
             img = PIL.Image.open(full_file_path)
-            img.save(output_path, "PNG")
+            img.save(
+                os.path.join(
+                    directory_path,
+                    f"_conv_{strip_ext(get_file_name(full_file_path))}.png",
+                ),
+                "PNG",
+            )
 
 
 def enhance_contrast(dir_path):
@@ -436,7 +483,9 @@ def enhance_contrast(dir_path):
             byte_io = io.BytesIO()
             enhanced_image.save(byte_io, format="PNG")
             enhanced_images.append(byte_io.getvalue())
-        output_path = f"{strip_ext(path)}_inc_contrast.pdf"
+        output_path = os.path.join(
+            dir_path, f"_contrast_{strip_ext(get_file_name(path))}.pdf"
+        )
         with open(output_path, "wb") as file:
             file.write(img2pdf.convert(enhanced_images))
 
@@ -447,7 +496,7 @@ def rename_files(dir_path):
         return
     files = index_directory(dir_path)
     total = len(files)
-    padding = len(str(total))
+    padding = get_padding(total)
     temp_suffix = "_temp"
     temp_files = []
     for i, file in enumerate(files, start=1):
@@ -457,7 +506,7 @@ def rename_files(dir_path):
     for i, temp_file in enumerate(temp_files, start=1):
         padded_num = str(i).zfill(padding)
         final_name = os.path.join(
-            dir_path, f"{base_name}-{padded_num}.{get_file_type(temp_file)}"
+            dir_path, f"_{base_name}-{padded_num}.{get_file_type(temp_file)}"
         )
         os.rename(temp_file, final_name)
 
@@ -491,6 +540,7 @@ def index_directory(path, file_types=None):
                     file_paths.append(os.path.join(subdir, file))
             else:
                 file_paths.append(os.path.join(subdir, file))
+    file_paths.sort()
     return file_paths
 
 
@@ -519,6 +569,10 @@ def strip_ext(filename):
 
 def get_file_type(path):
     return path.split(".")[-1]
+
+
+def get_padding(count):
+    return max(2, len(str(count)))
 
 
 def get_input():
@@ -585,7 +639,10 @@ def crop_solid_edges(directory_path):
         img = PIL.Image.open(file_path).convert("RGB")
         crop_box = find_crop_edges(img)
         cropped = img.crop(crop_box)
-        out_path = f"{strip_ext(file_path)}_cropped.{get_file_type(file_path)}"
+        out_path = os.path.join(
+            directory_path,
+            f"_auto_crop_{strip_ext(get_file_name(file_path))}.{get_file_type(file_path)}",
+        )
         cropped.save(out_path)
         results.append(f"Cropped: {out_path}")
     if status_field:

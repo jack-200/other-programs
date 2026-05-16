@@ -1,14 +1,18 @@
-# Python & Envs
+# Development & Cache
 __pycache__/
+.pytest_cache/
 .venv/
 venv/
 
-# System & IDEs
-.idea/
-.DS_Store
-
-# State & Build
-*.json
-*.spec
+# Build & State
 build/
 dist/
+*.json
+*.spec
+
+# OS & Editors
+.DS_Store
+.idea/
+
+# Project Specific
+pdf-and-image-tools/tests/data/

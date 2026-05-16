@@ -1,6 +1,8 @@
+import collections
 import hashlib
 import io
 import os
+import re
 import shutil
 import sys
 
@@ -14,12 +16,17 @@ try:
 except ModuleNotFoundError:
     img2pdf = None
 
+try:
+    import playwright.sync_api
+except ModuleNotFoundError:
+    playwright = None
+
 import numpy
-import pypdf
+import pdf2image
 import PIL.ExifTags
 import PIL.Image
 import PIL.ImageEnhance
-import pdf2image
+import pypdf
 
 
 class DummyStatusField:
@@ -74,7 +81,7 @@ def stitch_pdfs(dir_path):
                 total_height += height
                 max_width = max(max_width, width)
                 max_height = max(max_height, height)
-            base_path_and_name = strip_ext(file_name)
+
             vertical_pdf = pypdf.PageObject.create_blank_page(
                 width=max_width, height=total_height
             )
@@ -94,6 +101,7 @@ def stitch_pdfs(dir_path):
                 output.write(vertical_out)
             if status_field:
                 status_field.setText(f"Created vertical stitched PDF: {vertical_path}")
+
             horizontal_pdf = pypdf.PageObject.create_blank_page(
                 width=total_width, height=max_height
             )
@@ -147,36 +155,38 @@ def save_page_range(path, start_page, end_page):
     if len(range_input) > 1:
         if (
             range_input[0]
-            and int(range_input[0]) >= 0
+            and int(range_input[0]) > 0
             and range_input[1]
             and int(range_input[1]) > 0
         ):
-            start_page = range_input[0]
-            end_page = range_input[1]
+            start_page = int(range_input[0])
+            end_page = int(range_input[1])
         elif range_input[0] == "":
-            start_page = 0
-            end_page = range_input[1]
+            start_page = 1
+            end_page = int(range_input[1])
         elif range_input[1] == "":
-            start_page = range_input[0]
+            start_page = int(range_input[0])
             end_page = -1
     else:
-        start_page = end_page = range_input[0]
+        start_page = end_page = int(range_input[0])
     for file_path in index_directory(path, "pdf"):
-        total_pages = len(pypdf.PdfReader(file_path).pages)
-        if int(start_page) > total_pages:
-            continue
-        if end_page == -1 or int(end_page) > total_pages:
-            with open(file_path, "rb") as f:
-                end_page = pypdf.PdfReader(f)
-                end_page = len(end_page.pages)
-        start_page = int(start_page)
-        end_page = int(end_page)
-        padding = get_padding(total_pages)
-        padded_start = str(start_page).zfill(padding)
-        padded_end = str(end_page).zfill(padding)
-        writer = pypdf.PdfWriter()
         reader = pypdf.PdfReader(file_path)
-        for page in range(start_page - 1, end_page):
+        total_pages = len(reader.pages)
+
+        current_start = start_page
+        current_end = end_page
+
+        if current_start > total_pages:
+            continue
+        if current_end == -1 or current_end > total_pages:
+            current_end = total_pages
+
+        padding = get_padding(total_pages)
+        padded_start = str(current_start).zfill(padding)
+        padded_end = str(current_end).zfill(padding)
+
+        writer = pypdf.PdfWriter()
+        for page in range(current_start - 1, current_end):
             writer.add_page(reader.pages[page])
         with open(
             os.path.join(
@@ -286,15 +296,14 @@ def merge_images(path):
             )
         return
     imgs = []
-    total_width = total_height = max_width = max_height = 0
+    max_width = max_height = 0
     for file_path in file_paths:
         img = PIL.Image.open(file_path)
         imgs.append(img)
         width, height = img.size
-        total_width += width
-        total_height += height
         max_width = max(max_width, width)
         max_height = max(max_height, height)
+
     v_scaled_imgs = [
         numpy.array(
             img.convert("RGB").resize(
@@ -311,11 +320,13 @@ def merge_images(path):
         )
         for img in imgs
     ]
+
     v_imgs_comb = numpy.vstack(v_scaled_imgs)
     PIL.Image.fromarray(v_imgs_comb).save(os.path.join(path, "_v_merge.png"))
     PIL.Image.fromarray(v_imgs_comb).convert("RGB").save(
         os.path.join(path, "_v_merge.jpg")
     )
+
     h_imgs_comb = numpy.hstack(h_scaled_imgs)
     PIL.Image.fromarray(h_imgs_comb).save(os.path.join(path, "_h_merge.png"))
     PIL.Image.fromarray(h_imgs_comb).convert("RGB").save(
@@ -326,7 +337,6 @@ def merge_images(path):
 def convert_between_png_jpg(directory):
     for image_path in get_all_images(directory):
         file_type = get_file_type(image_path)
-        new_file_path = strip_ext(image_path)
         if file_type == "png":
             PIL.Image.open(image_path).convert("RGB").save(
                 os.path.join(
@@ -397,9 +407,8 @@ def duplicate_detector(directory_path):
 
 
 def get_image_colors(directory_path):
-    import collections
-
     results = []
+
     for full_file_path in index_directory(
         directory_path, file_types=["jpeg", "jpg", "png"]
     ):
@@ -456,9 +465,47 @@ def convert_svg_and_webp_to_png(directory_path):
     for full_file_path in index_directory(directory_path, file_types=["svg", "webp"]):
         output_path = f"{strip_ext(full_file_path)}.png"
         if full_file_path.endswith(".svg"):
-            if cairosvg is None:
-                continue
-            cairosvg.svg2png(url=full_file_path, write_to=output_path)
+            success = False
+            if playwright is not None:
+                try:
+                    with playwright.sync_api.sync_playwright() as p:
+                        browser = p.chromium.launch(headless=True)
+                        page = browser.new_page()
+                        page.goto(f"file://{os.path.abspath(full_file_path)}")
+                        svg_element = page.locator("svg")
+                        svg_element.screenshot(path=output_path, omit_background=True)
+                        browser.close()
+                        success = True
+                except Exception:
+                    pass
+
+            if not success and cairosvg is not None:
+                try:
+                    with open(
+                        full_file_path, "r", encoding="utf-8", errors="ignore"
+                    ) as f:
+                        svg_data = f.read()
+
+                    style_tag = "<style>text { font-family: sans-serif; }</style>"
+                    if "<svg" in svg_data:
+                        tag_end = svg_data.find(">") + 1
+                        svg_data = svg_data[:tag_end] + style_tag + svg_data[tag_end:]
+
+                    emoji_pattern = re.compile(
+                        r"([\U0001f300-\U0001f64f\U0001f680-\U0001f6ff\U0001f1e0-\U0001f1ff\U00002700-\U000027bf\U0001f900-\U0001f9ff\U0001f3fb-\U0001f3ff])"
+                    )
+                    if emoji_pattern.search(svg_data):
+                        svg_data = emoji_pattern.sub(
+                            r"<tspan font-family='Apple Color Emoji'>\1</tspan>",
+                            svg_data,
+                        )
+
+                    cairosvg.svg2png(
+                        bytestring=svg_data.encode("utf-8"), write_to=output_path
+                    )
+                except Exception:
+                    cairosvg.svg2png(url=full_file_path, write_to=output_path)
+
         elif full_file_path.endswith(".webp"):
             img = PIL.Image.open(full_file_path)
             img.save(

@@ -21,3 +21,12 @@ dependencies = [
     "requests",
     "lxml",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytesseract",
+    "pytest",
+]
+high-fid = [
+    "playwright",
+]
